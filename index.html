@@ -3,50 +3,201 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MelonClient Launcher</title>
+    <title>MelonClient Hub</title>
     <style>
-        html, body {
+        /* Global Portal Reset & Aesthetic */
+        body {
             margin: 0;
             padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1a331c; /* Deep dark melon green */
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        /* Top Header Styling */
+        header {
+            background-color: #122414;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 4px solid #72db51;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            color: #72db51; /* Vibrant lime green logo accent */
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        header p {
+            margin: 5px 0 0 0;
+            color: #a2e88d;
+            font-size: 1rem;
+        }
+
+        /* Responsive Content Section Framework */
+        .content-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
+            padding: 30px 10px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Frame Card Containers */
+        .frame-card {
             width: 100%;
-            height: 100%;
+            max-width: 1024px;
+            background-color: #122414;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            border: 2px solid #2d5431;
             overflow: hidden;
-            background-color: #72db51; /* Custom lime green background */
-            font-family: sans-serif;
+        }
+
+        .frame-header {
+            background-color: #1a331c;
+            padding: 15px 20px;
+            border-bottom: 2px solid #2d5431;
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
         }
 
-        #melon-splash {
-            display: flex;
-            justify-content: center;
-            align-items: center;
+        .frame-header h2 {
+            margin: 0;
+            font-size: 1.3rem;
+            color: #72db51;
+        }
+
+        /* Target Frame Embedding Layouts */
+        .game-wrapper {
+            position: relative;
+            width: 100%;
+            padding-top: 56.25%; /* Force crisp 16:9 widescreen gameplay dimension ratio */
+        }
+
+        .game-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
+            border: none;
         }
 
-        #melon-splash img {
+        /* Smart Loading Screen overlay inside the iframe container card */
+        #iframe-splash {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #72db51; /* Custom lime green background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10; /* Sits directly on top of the iframe element */
+            opacity: 1;
+            transition: opacity 1.0s ease-in-out; /* Smooth 1-second fade out */
+            pointer-events: all; /* Blocks clicking the game during loading */
+        }
+
+        #iframe-splash img {
             max-width: 75%;
             max-height: 75%;
             object-fit: contain;
+        }
+
+        /* Applied by the script timer to trigger the fade effect */
+        .splash-hidden {
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+
+        .skin-wrapper {
+            width: 100%;
+            height: 650px;
+        }
+
+        .skin-wrapper iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background-color: #ffffff;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #122414;
+            color: #639c67;
+            font-size: 0.9rem;
+            margin-top: 40px;
+            border-top: 2px solid #2d5431;
         }
     </style>
 </head>
 <body>
 
-    <div id="melon-splash">
-        <!-- Loads the PNG directly. Capital letters must match your repo file exactly! -->
-        <img src="MelonClient.png" alt="MelonClient Logo">
+    <!-- Main Navigation Header -->
+    <header>
+        <h1>MELONCLIENT</h1>
+        <p>The Ultimate 1.12 Minecraft Web Hub</p>
+    </header>
+
+    <div class="content-container">
+
+        <!-- SECTION 1: Active Game Client Viewport -->
+        <div class="frame-card">
+            <div class="frame-header">
+                <h2>🎮 Game Client Instance</h2>
+                <span style="color: #639c67; font-size: 0.85rem;">Status: Launching...</span>
+            </div>
+            <div class="game-wrapper">
+                <!-- Direct splash layer placed above the game canvas window -->
+                <div id="iframe-splash">
+                    <img src="MelonClient.png" alt="MelonClient Logo">
+                </div>
+                <!-- Your original raw game client stays completely unmodified -->
+                <iframe src="game.html" title="MelonClient Game View"></iframe>
+            </div>
+        </div>
+
+        <!-- SECTION 2: Skindex Explorer Viewport -->
+        <div class="frame-card">
+            <div class="frame-header">
+                <h2>👕 Skin Browser</h2>
+                <span style="color: #a2e88d; font-size: 0.85rem;">Find a skin, download it, and upload in-game!</span>
+            </div>
+            <div class="skin-wrapper">
+                <iframe src="https://minecraftskins.com" title="Skindex Skin Browser"></iframe>
+            </div>
+        </div>
+
     </div>
 
-    <script>
-        // Wait 3 seconds, then automatically redirect to your game client
-        window.addEventListener('load', function() {
+    <footer>
+        <p>&copy; 2026 MelonClient | Built via GitHub Pages</p>
+    </footer>
+
+    <script type="text/javascript">
+        // Holds the splash container screen for 3 seconds, then transitions out over 1 second
+        window.addEventListener('DOMContentLoaded', function() {
             setTimeout(function() {
-                window.location.href = "game.html";
-            }, 3000);
+                const splash = document.getElementById('iframe-splash');
+                if (splash) {
+                    splash.classList.add('splash-hidden');
+                    
+                    // Cleans up the web element completely after the fade animation finishes
+                    setTimeout(() => splash.remove(), 1000);
+                }
+            }, 3000); /* 3000 milliseconds = 3 seconds */
         });
     </script>
+
 </body>
 </html>
