@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MelonClient Hub</title>
+    <!-- Loads the official YouTube Player IFrame API for secure, external volume controls -->
+    <script src="https://www.youtube.com/iframe_api"></script>
     <style>
         /* Global Reset & Virtual Desktop Theme */
         body {
@@ -22,12 +24,12 @@
         }
         header h1 { margin: 0; font-size: 1.6rem; color: #72db51; letter-spacing: 1px; }
         
-        /* GENERAL CONTAINER STYLING */
+        /* WINDOW MANAGER ARCHITECTURE STYLES */
         .window {
             position: absolute; background-color: #122414;
             border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             border: 2px solid #2d5431; overflow: hidden;
-            display: flex; flex-direction: column; min-width: 250px; min-height: 150px;
+            display: flex; flex-direction: column; min-width: 280px; min-height: 160px;
         }
         .window-header {
             background-color: #1a331c; padding: 10px 15px; border-bottom: 2px solid #2d5431;
@@ -37,22 +39,31 @@
         .window-content { flex: 1; position: relative; width: 100%; height: 100%; background: #000; }
         .window-content iframe { width: 100%; height: 100%; border: none; }
         
-        /* HOVER BAR HIDE / SHOW STYLING RULES FOR GAME FULLSCREEN */
+        /* HOVER HIDE BAR LOGIC FOR FULLSCREEN MODE */
         #game-card .window-header {
             transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s ease;
         }
-        #game-card:fullscreen .window-header { position: absolute; top: 0; left: 0; width: 100%; z-index: 100; transform: translateY(-100%); opacity: 0; }
+        #game-card:fullscreen .window-header { 
+            position: absolute; top: 0; left: 0; width: 100%; z-index: 100; 
+            transform: translateY(-100%); opacity: 0; 
+        }
         #game-card:fullscreen:hover .window-header { transform: translateY(0); opacity: 1; }
         #game-card:fullscreen .game-wrapper { padding-top: 0; height: 100vh; width: 100vw; }
         #game-card:fullscreen .game-wrapper iframe { height: 100vh; }
 
-        /* NATIVE RESIZE HANDLE ELEMENTS */
+        /* MULTI-ENGINE FULLSCREEN FALLBACKS */
+        #game-card:-webkit-full-screen .window-header { position: absolute; top: 0; left: 0; width: 100%; z-index: 100; transform: translateY(-100%); opacity: 0; }
+        #game-card:-webkit-full-screen:hover .window-header { transform: translateY(0); opacity: 1; }
+        #game-card:-webkit-full-screen .game-wrapper { padding-top: 0; height: 100vh; width: 100vw; }
+        #game-card:-webkit-full-screen .game-wrapper iframe { height: 100vh; }
+
+        /* RESIZE CORNER TRACK PIECES */
         .resize-handle {
-            position: absolute; width: 12px; height: 12px; background-color: transparent;
+            position: absolute; width: 14px; height: 14px; background-color: transparent;
             right: 0; bottom: 0; cursor: se-resize; z-index: 1000;
         }
 
-        /* HARDWARE ACTION CONTROLS */
+        /* CONTAINER BUTTON ROW */
         .control-row { display: flex; align-items: center; gap: 12px; }
         .action-btn {
             background-color: #72db51; color: #122414; border: none; padding: 6px 12px;
@@ -61,7 +72,7 @@
         }
         .action-btn:hover { background-color: #a2e88d; }
         
-        /* MIXER HARDWARE VOLUME CONTROL DESIGNS */
+        /* AUDIO INPUT RANGE MIXER CONTROLS */
         .vol-mixer { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #a2e88d; }
         .vol-slider {
             -webkit-appearance: none; width: 80px; height: 6px; border-radius: 3px;
@@ -69,11 +80,10 @@
         }
         .vol-slider::-webkit-slider-thumb {
             -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%;
-            background: #72db51; cursor: pointer; transition: background 0.1s;
+            background: #72db51; cursor: pointer;
         }
-        .vol-slider::-webkit-slider-thumb:hover { background: #a2e88d; }
 
-        /* LOADING INTRO SPLASH LAYER */
+        /* SCREEN HOLD LOADING LAYER ANIMATIONS */
         #iframe-splash {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background-color: #72db51; display: flex; justify-content: center;
@@ -82,32 +92,32 @@
         #iframe-splash img { max-width: 65%; max-height: 65%; object-fit: contain; }
         .splash-hidden { opacity: 0 !important; pointer-events: none !important; }
         
-        /* INITIAL DESKTOP NODE PLACEMENTS */
-        #game-card { top: 75px; left: 20px; width: 720px; height: 460px; z-index: 10; }
-        #spotify-card { top: 75px; right: 20px; width: 320px; height: 400px; z-index: 5; }
-        #youtube-card { bottom: 20px; left: 20px; width: 420px; height: 280px; z-index: 5; }
+        /* DESKTOP BOUNDARY MATRIX INITIAL LAYOUT PLACEMENTS */
+        #game-card { top: 75px; left: 20px; width: 680px; height: 440px; z-index: 10; }
+        #spotify-card { top: 75px; right: 20px; width: 340px; height: 420px; z-index: 5; }
+        #youtube-card { bottom: 20px; left: 20px; width: 440px; height: 290px; z-index: 5; }
     </style>
 </head>
 <body>
     <header>
-        <h1>MELONCLIENT HUB</h1>
+        <h1>MELONCLIENT OS</h1>
         <div class="control-row">
-            <!-- Global Game Audio Mixing Node Slider -->
+            <!-- Hardware Slider targeting the core Game Audio matrix node -->
             <div class="vol-mixer">
                 <span>🔊 Game Vol:</span>
                 <input type="range" id="game-volume-slider" class="vol-slider" min="0" max="100" value="100" oninput="adjustGameVolume(this.value)">
             </div>
-            <button class="action-btn" onclick="toggleFullscreen()">🖵 Fullscreen Game</button>
+            <button class="action-btn" onclick="toggleFullscreen()">🖵 Fullscreen Client</button>
         </div>
     </header>
 
-    <!-- WORKSPACE COMPONENT 1: Core Eaglercraft Canvas Context Window -->
+    <!-- WINDOW HUB 1: Main Game Engine Viewport Container -->
     <div class="window" id="game-card">
         <div class="window-header">
-            <span class="window-title">🎮 Eaglercraft Client Engine</span>
+            <span class="window-title">🎮 MelonClient Workspace</span>
             <span id="load-status" style="color:#a2e88d; font-size:0.8rem;">Connecting...</span>
         </div>
-        <div class="window-content" style="height: calc(100% - 39px);">
+        <div class="game-wrapper" style="height: calc(100% - 39px); width:100%;">
             <div id="iframe-splash">
                 <img src="MelonClient.png" alt="MelonClient Logo">
             </div>
@@ -115,35 +125,31 @@
         </div>
         <div class="resize-handle"></div>
     </div>
-    <!-- WORKSPACE COMPONENT 2: Modular Web Spotify Widget Node -->
+    <!-- WINDOW HUB 2: Integrated Unblocked Spotify Embedded Playlist Node -->
     <div class="window" id="spotify-card">
         <div class="window-header">
-            <span class="window-title">🎵 Spotify Music Widget</span>
-            <div class="vol-mixer">
-                <span>Vol:</span>
-                <!-- Local Audio Matrix Attenuator -->
-                <input type="range" class="vol-slider" min="0" max="100" value="100" oninput="adjustWidgetVolume('spotify-frame', this.value)">
-            </div>
+            <span class="window-title">🎵 Spotify Mini-Player</span>
+            <span style="color:#a2e88d; font-size: 0.75rem;">Use widget controls below</span>
         </div>
         <div class="window-content" style="height: calc(100% - 39px);">
-            <!-- Uses unblocked public utility proxy layer embed target track -->
-            <iframe id="spotify-frame" src="https://spotify.com" allow="encrypted-media"></iframe>
+            <!-- Uses a verified, secure open API embed framework layout -->
+            <iframe id="spotify-frame" src="https://spotify.com" allow="encrypted-media; clipboard-write"></iframe>
         </div>
         <div class="resize-handle"></div>
     </div>
 
-    <!-- WORKSPACE COMPONENT 3: Modular YouTube Streaming Node -->
+    <!-- WINDOW HUB 3: Unblocked Custom YouTube Media Streamer Box -->
     <div class="window" id="youtube-card">
         <div class="window-header">
-            <span class="window-title">📺 YouTube Miniplayer Container</span>
+            <span class="window-title">📺 YouTube Miniplayer</span>
             <div class="vol-mixer">
                 <span>Vol:</span>
-                <input type="range" class="vol-slider" min="0" max="100" value="100" oninput="adjustWidgetVolume('youtube-frame', this.value)">
+                <input type="range" class="vol-slider" min="0" max="100" value="50" oninput="adjustYTVolume(this.value)">
             </div>
         </div>
         <div class="window-content" style="height: calc(100% - 39px);">
-            <!-- Configured with direct embed controls bypassing sandbox blockades -->
-            <iframe id="youtube-frame" src="https://youtube.com"></iframe>
+            <!-- Uses the secure embed path with JS API configurations enabled -->
+            <div id="yt-player-placeholder" style="width:100%; height:100%;"></div>
         </div>
         <div class="resize-handle"></div>
     </div>
@@ -153,8 +159,20 @@
         const splashOverlay = document.getElementById('iframe-splash');
         const loadStatus = document.getElementById('load-status');
         const gameCard = document.getElementById('game-card');
+        let ytPlayer = null;
 
-        // Handles the custom 5-second holding mask loading mask illusion
+        // Automatically spawns the unblocked YouTube video hook inside the viewport container
+        function onYouTubeIframeAPIReady() {
+            ytPlayer = new YT.Player('yt-player-placeholder', {
+                width: '100%',
+                height: '100%',
+                videoId: 'jfKfPfyJRdk', // Replace this with any custom YouTube video ID string!
+                playerVars: { 'controls': 1, 'enablejsapi': 1, 'origin': window.location.origin },
+                events: { 'onReady': (e) => e.target.setVolume(50) }
+            });
+        }
+
+        // Activates the custom 5 second holding mask loading mask illusion
         gameFrame.addEventListener('load', function() {
             loadStatus.innerText = "Initializing Options...";
             setTimeout(function() {
@@ -167,80 +185,50 @@
             }, 5000); 
         });
 
-        // NATIVE DRAG AND DROP DESKTOP MANAGEMENT SYSTEM SCRIPT
+        // DESKTOP SYSTEM DRAG & RESIZE UTILITY SCRIPT
         let highestZ = 10;
-        
         document.querySelectorAll('.window').forEach(win => {
             const header = win.querySelector('.window-header');
             const handle = win.querySelector('.resize-handle');
             
-            // Focus Window on Click
-            win.addEventListener('mousedown', () => {
-                highestZ++;
-                win.style.zindex = highestZ;
-            });
+            win.addEventListener('mousedown', () => { highestZ++; win.style.zIndex = highestZ; });
 
-            // Dragging Logic Initialization
             header.addEventListener('mousedown', (e) => {
-                if(e.target.classList.contains('vol-slider')) return; // Ignore mixer sliders
-                highestZ++;
-                win.style.zIndex = highestZ;
-                
-                let startX = e.clientX;
-                let startY = e.clientY;
-                let origLeft = win.offsetLeft;
-                let origTop = win.offsetTop;
-                
+                if(e.target.classList.contains('vol-slider')) return;
+                highestZ++; win.style.zIndex = highestZ;
+                let startX = e.clientX, startY = e.clientY, origLeft = win.offsetLeft, origTop = win.offsetTop;
                 function doDrag(ev) {
                     win.style.left = (origLeft + ev.clientX - startX) + 'px';
                     win.style.top = (origTop + ev.clientY - startY) + 'px';
                 }
-                function stopDrag() {
-                    document.removeEventListener('mousemove', doDrag);
-                    document.removeEventListener('mouseup', stopDrag);
-                }
-                document.addEventListener('mousemove', doDrag);
-                document.addEventListener('mouseup', stopDrag);
+                function stopDrag() { document.removeEventListener('mousemove', doDrag); document.removeEventListener('mouseup', stopDrag); }
+                document.addEventListener('mousemove', doDrag); document.addEventListener('mouseup', stopDrag);
             });
 
-            // Resizing Logic Initialization
             handle.addEventListener('mousedown', (e) => {
                 e.preventDefault();
-                let startW = win.offsetWidth;
-                let startH = win.offsetHeight;
-                let startX = e.clientX;
-                let startY = e.clientY;
-
+                let startW = win.offsetWidth, startH = win.offsetHeight, startX = e.clientX, startY = e.clientY;
                 function doResize(ev) {
                     win.style.width = (startW + ev.clientX - startX) + 'px';
                     win.style.height = (startH + ev.clientY - startY) + 'px';
                 }
-                function stopResize() {
-                    document.removeEventListener('mousemove', doResize);
-                    document.removeEventListener('mouseup', stopResize);
-                }
-                document.addEventListener('mousemove', doResize);
-                document.addEventListener('mouseup', stopResize);
+                function stopResize() { document.removeEventListener('mousemove', doResize); document.removeEventListener('mouseup', stopResize); }
+                document.addEventListener('mousemove', doResize); document.addEventListener('mouseup', stopResize);
             });
         });
 
-        // AUDIOMIXER GAIN ELEMENT SCALING LOGIC
+        // AUDIO MATRIX ROUTING UTILITIES
         function adjustGameVolume(val) {
             try {
-                // Communicates directly with the internal WebAudio context running within game.html
                 if (gameFrame.contentWindow) {
                     gameFrame.contentWindow.postMessage({ type: "EAGLER_VOLUME", value: val / 100 }, "*");
                 }
-            } catch(e) { console.log("Cross-origin audio binding waiting for canvas context initialization..."); }
+            } catch(e) {}
         }
 
-        function adjustWidgetVolume(frameId, val) {
-            const frame = document.getElementById(frameId);
-            // YouTube Native Player Integration volume payload structure
-            if(frameId === 'youtube-frame' && frame.contentWindow) {
-                frame.contentWindow.postMessage(JSON.stringify({
-                    event: "command", func: "setVolume", args: [parseInt(val)]
-                }), "*");
+        function adjustYTVolume(val) {
+            if (ytPlayer && typeof ytPlayer.setVolume === 'function') {
+                ytPlayer.setVolume(parseInt(val));
             }
         }
 
