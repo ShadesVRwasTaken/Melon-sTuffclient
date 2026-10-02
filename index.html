@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MelonOS Dashboard</title>
     <style>
+        /* Global OS Framework Theme Settings */
         :root {
             --bg-color: #162a18;
             --panel-bg: #122414;
@@ -36,10 +37,12 @@
         .desktop-shortcut:hover { background-color: rgba(114, 219, 81, 0.15); }
         .shortcut-icon { font-size: 2.4rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); pointer-events: none; }
         .shortcut-label { font-size: 0.8rem; text-align: center; font-weight: 500; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); color: var(--text-color); pointer-events: none; word-break: break-all; }
+        
         .context-menu { position: absolute; background-color: var(--panel-bg); border: 1px solid var(--border-color); box-shadow: 0 5px 15px rgba(0,0,0,0.5); border-radius: 6px; padding: 5px 0; z-index: 20000000; display: none; min-width: 140px; }
         .context-item { padding: 8px 15px; font-size: 0.85rem; color: var(--text-color); cursor: pointer; display: flex; align-items: center; gap: 8px; }
         .context-item:hover { background-color: var(--accent-color); color: #122414; font-weight: bold; }
         .context-item.disabled { color: #555 !important; cursor: not-allowed; background: transparent !important; }
+        
         .window { position: absolute; background-color: var(--panel-bg); border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 2px solid var(--border-color); overflow: hidden; display: flex; flex-direction: column; min-width: 320px; min-height: 200px; z-index: 5; }
         .window-header { background-color: rgba(0,0,0,0.15); padding: 10px 15px; border-bottom: 2px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; cursor: move; }
         .window-title { font-size: 0.9rem; font-weight: bold; color: var(--accent-color); display: flex; align-items: center; gap: 6px; }
@@ -54,11 +57,13 @@
         .flex-btn-row { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
         .media-preview-box { width: 100%; height: calc(100% - 60px); background: #000; border-radius: 6px; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; }
         .media-preview-box video { width: 100%; height: 100%; object-fit: contain; }
+        
         .grid-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; padding: 5px; }
         .grid-item-card { background: #1a331c; border: 1px solid var(--border-color); border-radius: 6px; padding: 10px; text-align: center; cursor: pointer; position: relative; }
         .grid-item-card:hover { border-color: var(--accent-color); }
         .grid-item-card img, .grid-item-card video { max-width: 100%; max-height: 80px; object-fit: contain; border-radius: 4px; }
         .grid-item-label { font-size: 0.75rem; margin-top: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #fff; }
+        
         .note-textarea { width: 100%; height: calc(100% - 60px); background: #050a05; color: #72db51; border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; box-sizing: border-box; font-family: monospace; font-size: 1rem; resize: none; outline: none; }
         #game-window:fullscreen { width: 100vw !important; height: 100vh !important; border: none !important; border-radius: 0 !important; z-index: 2147483647 !important; }
         #game-window:fullscreen .window-header { display: none !important; }
@@ -66,6 +71,15 @@
         #game-window:-webkit-full-screen { width: 100vw !important; height: 100vh !important; border: none !important; border-radius: 0 !important; z-index: 2147483647 !important; }
         #game-window:-webkit-full-screen .window-header { display: none !important; }
         #game-window:-webkit-full-screen .window-content { height: 100vh !important; }
+        
+        /* OS OVERLAY MEDIA VIEWERS STYLES */
+        #os-media-viewer-modal {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 80%; height: 80%; max-width: 800px; background: #122414; border: 2px solid #72db51;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8); border-radius: 12px; z-index: 2147483640;
+            display: none; flex-direction: column; overflow: hidden;
+        }
+        
         .taskbar { position: absolute; bottom: 0; left: 0; width: 100vw; height: 45px; background-color: var(--panel-bg); border-top: 2px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; padding: 0 15px; box-sizing: border-box; z-index: 1000000; }
         .taskbar-left, .taskbar-right { display: flex; align-items: center; gap: 15px; }
         .task-app-btn { background-color: rgba(114, 219, 81, 0.1); border: 1px solid var(--border-color); color: var(--text-color); padding: 5px 12px; border-radius: 5px; cursor: pointer; font-size: 0.8rem; }
@@ -83,6 +97,15 @@
     <div id="desktop-context-menu" class="context-menu">
         <div class="context-item" id="menu-open-action">🟢 Open App</div>
         <div class="context-item" id="menu-delete-action" style="color:#ff5f56;">🗑 Delete App</div>
+    </div>
+
+    <!-- INTERNAL OS COMPACT MODAL VIEWER SYSTEM -->
+    <div id="os-media-viewer-modal">
+        <div class="window-header" style="background:#1a331c;">
+            <span class="window-title" id="os-media-viewer-title">Media Viewer</span>
+            <button class="win-btn win-close" onclick="closeOSMediaViewer()"></button>
+        </div>
+        <div id="os-media-viewer-content" style="flex:1; background:#000; display:flex; justify-content:center; align-items:center; padding:10px;"></div>
     </div>
 
     <!-- Widened Grid Placement Shortcuts Map Layout -->
@@ -125,6 +148,7 @@
             <div id="iframe-splash">
                 <img src="MelonClient.png" alt="MelonClient Logo">
             </div>
+            <!-- Client frame target link array track configurations -->
             <iframe id="game-frame" src="game.html" title="MelonClient Sandbox"></iframe>
         </div>
         <div class="resize-handle"></div>
@@ -193,7 +217,16 @@
                 <button class="win-btn win-close" onclick="closeWindow('files-window')"></button>
             </div>
         </div>
-        <div class="window-content app-padding"><div class="grid-list" id="files-grid-target"></div></div>
+        <div class="window-content app-padding">
+            <div class="flex-btn-row">
+                <!-- Direct Hardware Drive Upload Interface Element Hook -->
+                <label class="task-app-btn" style="background:var(--accent-color); color:#000; font-weight:bold; cursor:pointer;">
+                    📤 Upload Files to OS
+                    <input type="file" id="os-file-uploader-node" style="display:none;" multiple onchange="handleExternalOSUpload(this)">
+                </label>
+            </div>
+            <div class="grid-list" id="files-grid-target"></div>
+        </div>
         <div class="resize-handle"></div>
     </div>
 
@@ -222,7 +255,7 @@
             <div class="system-metric" id="sys-clock">00:00:00 PM</div>
         </div>
     </div>
-    <script type="text/javascript">
+        <script type="text/javascript">
         const gameFrame = document.getElementById('game-frame');
         const splashOverlay = document.getElementById('iframe-splash');
         const loadStatus = document.getElementById('load-status');
@@ -265,8 +298,7 @@
 
         function triggerPhotoSnap() {
             if(!cameraDeviceStream) return;
-            const video = document.getElementById('camera-viewfinder');
-            const canvas = document.createElement('canvas');
+            const video = document.getElementById('camera-viewfinder'); const canvas = document.createElement('canvas');
             canvas.width = video.videoWidth; canvas.height = video.videoHeight;
             canvas.getContext('2d').drawImage(video, 0, 0);
             saveVirtualFile("snapshot_" + Date.now() + ".png", canvas.toDataURL('image/png'), "image");
@@ -281,6 +313,19 @@
                 scrRecorder.start();
             });
         }
+        // FILE UPLOADER ENGINE WITH COMPACT MODAL VIEWER INTERACTIVE ELEMENTS
+        function handleExternalOSUpload(input) {
+            if(!input.files) return;
+            Array.from(input.files).forEach(file => {
+                const reader = new FileReader();
+                let type = file.type.startsWith("video/") ? "video" : "image";
+                reader.onload = (e) => {
+                    saveVirtualFile(file.name, e.target.result, type);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
         function saveVirtualFile(name, src, type) { virtualFilesList.push({ name, src, type }); refreshExplorerGrids(); }
         
         function refreshExplorerGrids() {
@@ -291,9 +336,31 @@
                 if(file.type === "image") card.innerHTML = `<img src="${file.src}">`;
                 else card.innerHTML = `<span>🎥</span>`;
                 card.innerHTML += `<div class="grid-item-label">${file.name}</div>`;
-                card.onclick = () => window.open(file.src, '_blank');
+                
+                // Triggers native modal layout view instead of breaking out to blank pages
+                card.onclick = () => launchOSMediaViewer(file.name, file.src, file.type);
+                
                 files.appendChild(card.cloneNode(true)); if(file.type === "image" || file.type === "video") gallery.appendChild(card);
             });
+        }
+
+        function launchOSMediaViewer(name, src, type) {
+            const modal = document.getElementById('os-media-viewer-modal');
+            const title = document.getElementById('os-media-viewer-title');
+            const target = document.getElementById('os-media-viewer-content');
+            
+            title.innerText = "Viewing Asset: " + name;
+            if(type === "image") {
+                target.innerHTML = `<img src="${src}" style="max-width:100%; max-height:100%; object-fit:contain; image-rendering:pixelated;">`;
+            } else {
+                target.innerHTML = `<video src="${src}" controls autoplay style="max-width:100%; max-height:100%;"></video>`;
+            }
+            modal.style.display = "flex";
+        }
+
+        function closeOSMediaViewer() {
+            document.getElementById('os-media-viewer-modal').style.display = "none";
+            document.getElementById('os-media-viewer-content').innerHTML = "";
         }
 
         function saveLocalNoteChanges() { localStorage.setItem('melon_os_notepad_data', document.getElementById('notebook-textarea-node').value); alert("Note backed up!"); }
@@ -309,7 +376,6 @@
             newWin.innerHTML = `<div class="window-header"><span class="window-title">🚀 ${currentUrl}</span><div class="window-controls"><button class="win-btn win-min" onclick="minimizeWindow('${safeId}')"></button><button class="win-btn win-max" onclick="maximizeWindow('${safeId}')"></button><button class="win-btn win-close" onclick="closeWindow('${safeId}')"></button></div></div><div class="window-content"><iframe src="https://vercel.app"></iframe></div><div class="resize-handle"></div>`;
             document.body.appendChild(newWin); space.appendChild(shortcut); setupWindowManagerEvents(newWin); setupShortcutEvents(shortcut);
         }
-
         function setupShortcutEvents(sc) {
             sc.addEventListener('dblclick', () => openWindow(sc.getAttribute('data-window')));
             sc.addEventListener('contextmenu', (e) => {
@@ -336,8 +402,30 @@
         document.getElementById('menu-delete-action').onclick = () => { if(selectedShortcutId) { const sc = document.getElementById(selectedShortcutId); const tw = sc.getAttribute('data-window'); if(["game-window","google-window","camera-window","gallery-window","files-window","notebook-window"].includes(tw)) return; document.getElementById(tw).remove(); sc.remove(); ctxMenu.style.display = 'none'; updateTaskbarTray(); } };
         document.addEventListener('click', () => ctxMenu.style.display = 'none');
 
-        function openWindow(id) { const win = document.getElementById(id); win.style.display = 'flex'; windowZIndex++; win.style.zIndex = windowZIndex; updateTaskbarTray(); }
-        function closeWindow(id) { document.getElementById(id).style.display = 'none'; updateTaskbarTray(); }
+        // FORCE AUDIO PURGE DISCONNECT ON FORMS CLOSE WINDOW
+        function closeWindow(id) { 
+            const win = document.getElementById(id);
+            win.style.display = 'none'; 
+            
+            // Re-routes game iframe context directly to clear memory context threads instantly
+            if(id === 'game-window') {
+                document.getElementById('game-frame').src = "about:blank";
+            }
+            updateTaskbarTray(); 
+        }
+
+        function openWindow(id) { 
+            const win = document.getElementById(id); 
+            win.style.display = 'flex'; 
+            windowZIndex++; win.style.zIndex = windowZIndex; 
+            
+            // Reloads client contents cleanly if re-opened after an engine purge close hook
+            if(id === 'game-window' && document.getElementById('game-frame').src.endsWith("about:blank")) {
+                document.getElementById('game-frame').src = "game.html";
+            }
+            updateTaskbarTray(); 
+        }
+        
         function minimizeWindow(id) { const win = document.getElementById(id); win.style.display = win.style.display === 'none' ? 'flex' : 'none'; }
         function maximizeWindow(id) {
             const win = document.getElementById(id);
@@ -365,3 +453,4 @@
     </script>
 </body>
 </html>
+
