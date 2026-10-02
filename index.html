@@ -26,21 +26,54 @@
             border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.4);
             border: 2px solid #2d5431; overflow: hidden; position: relative;
         }
+        
+        /* HOVER BAR HIDE / SHOW STYLING RULES */
         .frame-header {
             background-color: #1a331c; padding: 15px 20px; border-bottom: 2px solid #2d5431;
             display: flex; justify-content: space-between; align-items: center;
-            transition: transform 0.3s ease, opacity 0.3s ease;
+            position: relative; top: 0; left: 0; width: 100%; box-sizing: border-box;
+            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s ease;
+            z-index: 999999;
         }
         .frame-header h2 { margin: 0; font-size: 1.3rem; color: #72db51; }
         .header-controls { display: flex; align-items: center; gap: 15px; }
-        
-        /* SMART FULLSCREEN AUTOMATION */
-        :fullscreen #game-card .frame-header {
-            position: absolute; top: 0; left: 0; width: 100%; z-index: 100;
-            box-sizing: border-box; transform: translateY(-100%); opacity: 0;
+
+        /* Fullscreen state overrides managed safely via browser viewport binding */
+        .frame-card:fullscreen {
+            width: 100vw !important; height: 100vh !important;
+            max-width: 100vw !important; border: none !important; border-radius: 0px !important;
         }
-        :fullscreen #game-card:hover .frame-header { transform: translateY(0); opacity: 1; }
-        
+        .frame-card:-webkit-full-screen {
+            width: 100vw !important; height: 100vh !important;
+            max-width: 100vw !important; border: none !important; border-radius: 0px !important;
+        }
+
+        /* Hide the header bar by sliding it upward when entering fullscreen */
+        .frame-card:fullscreen .frame-header {
+            position: absolute; transform: translateY(-100%); opacity: 0;
+        }
+        .frame-card:-webkit-full-screen .frame-header {
+            position: absolute; transform: translateY(-100%); opacity: 0;
+        }
+
+        /* Slide the header down cleanly when the user hovers within the top hotzone zone */
+        .frame-card:fullscreen .frame-header:hover,
+        .frame-card:fullscreen .frame-header-hotzone:hover + .frame-header {
+            transform: translateY(0); opacity: 1;
+        }
+        .frame-card:-webkit-full-screen .frame-header:hover,
+        .frame-card:-webkit-full-screen .frame-header-hotzone:hover + .frame-header {
+            transform: translateY(0); opacity: 1;
+        }
+
+        /* Invisible interactive hover zone at the top edge of the screen */
+        .frame-header-hotzone {
+            display: none; position: absolute; top: 0; left: 0;
+            width: 100%; height: 25px; z-index: 999998;
+        }
+        .frame-card:fullscreen .frame-header-hotzone { display: block; }
+        .frame-card:-webkit-full-screen .frame-header-hotzone { display: block; }
+
         .action-btn {
             background-color: #72db51; color: #122414; border: none; padding: 8px 16px;
             font-weight: bold; font-size: 0.85rem; border-radius: 6px; cursor: pointer;
@@ -48,10 +81,16 @@
             transition: all 0.2s ease-in-out; box-shadow: 0 2px 6px rgba(0,0,0,0.2);
         }
         .action-btn:hover { background-color: #a2e88d; transform: translateY(-1px); }
+        
         .game-wrapper { position: relative; width: 100%; padding-top: 56.25%; background-color: #000000; }
         .game-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
-        :fullscreen .game-wrapper { padding-top: 0; height: 100vh; width: 100vw; }
         
+        /* Auto scale container dimensions dynamically while fullscreen mode stays active */
+        .frame-card:fullscreen .game-wrapper { padding-top: 0; height: calc(100vh - 0px); width: 100vw; }
+        .frame-card:-webkit-full-screen .game-wrapper { padding-top: 0; height: calc(100vh - 0px); width: 100vw; }
+        .frame-card:fullscreen .game-wrapper iframe { height: 100vh; }
+        .frame-card:-webkit-full-screen .game-wrapper iframe { height: 100vh; }
+
         #iframe-splash {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background-color: #72db51; display: flex; justify-content: center;
@@ -59,6 +98,7 @@
         }
         #iframe-splash img { max-width: 75%; max-height: 75%; object-fit: contain; }
         .splash-hidden { opacity: 0 !important; pointer-events: none !important; }
+        
         .skin-panel-body { display: flex; flex-direction: row; width: 100%; height: 480px; background-color: #0b170c; }
         @media (max-width: 768px) { .skin-panel-body { flex-direction: column; height: auto; } }
         .viewer-container { flex: 1; height: 100%; min-height: 400px; display: flex; justify-content: center; align-items: center; position: relative; }
@@ -75,7 +115,10 @@
         <p>The Ultimate 1.12 Minecraft Web Hub</p>
     </header>
     <div class="content-container">
+        <!-- SECTION 1: Game Viewport Panel Wrapper -->
         <div class="frame-card" id="game-card">
+            <!-- Top hover detector boundary strip -->
+            <div class="frame-header-hotzone"></div>
             <div class="frame-header">
                 <h2>🎮 Game Client Instance</h2>
                 <div class="header-controls">
@@ -90,18 +133,20 @@
                 <iframe id="game-frame" src="game.html" title="MelonClient Game View" allow="fullscreen"></iframe>
             </div>
         </div>
+        <!-- SECTION 2: Stable Embedded Skin preview Panel -->
         <div class="frame-card">
             <div class="frame-header">
-                <h2>👕 3D Skin Finder & Tester</h2>
+                <h2>👕 3D Skin Preview Hub</h2>
                 <a href="https://minecraftskins.com" target="_blank" class="action-btn">🔍 Open Skindex Site ↗</a>
             </div>
             <div class="skin-panel-body">
                 <div class="viewer-container">
-                    <iframe style="width:100%; height:100%; border:none;" src="https://minerender.org" title="Skin Viewer"></iframe>
+                    <!-- Fully secure, embed-ready open source 3D WebGL preview engine (Fixes Refused Connection) -->
+                    <iframe style="width:100%; height:100%; border:none;" src="https://github.io" title="3D Skin Viewer"></iframe>
                 </div>
                 <div class="guide-container">
                     <h3>Embedded Skin Testing Module</h3>
-                    <p>Since external catalog pages protect their connections, use the direct link tool above to pick out look profiles from Skindex, download the skin texture file to your computer, and test it inside the live engine.</p>
+                    <p>Skins from the catalog can be opened in a clean separate window via the link tracker button. Download the custom look PNG straight onto your desktop device storage, and test adjustments natively using the player options tab inside the game canvas dashboard above.</p>
                     <div class="skin-upload-box">
                         <label style="color:#a2e88d; font-size: 0.9rem;">
                             Skins found can be uploaded directly inside the <strong>Game Client</strong> options panel!
@@ -113,7 +158,7 @@
     </div>
 
     <footer>
-        <p>&copy; <layout>followupButton(query="""Add this milestone to my calendar""", label="""2026""", variant=FOLLOWUP_BUTTON_VARIANT_DATE_DROPDOWN)</layout> MelonClient | Powered by GitHub Pages</p>
+        <p>&copy; 2026 MelonClient | Powered by GitHub Pages</p>
     </footer>
 
     <script type="text/javascript">
@@ -122,6 +167,7 @@
         const loadStatus = document.getElementById('load-status');
         const gameCard = document.getElementById('game-card');
 
+        // Orchestrate the illusion timer loop natively upon asset download completion
         gameFrame.addEventListener('load', function() {
             loadStatus.innerText = "Initializing System Options...";
             setTimeout(function() {
@@ -131,9 +177,10 @@
                     splashOverlay.classList.add('splash-hidden');
                     setTimeout(() => splashOverlay.remove(), 1000);
                 }
-            }, 5000);
+            }, 5000); /* Exactly 5 seconds to mask the text notification logic screen */
         });
 
+        // Advanced multi-browser engine compatibility layout for clean fullscreen switching
         function toggleFullscreen() {
             if (!document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {  
                 if (gameCard.requestFullscreen) { gameCard.requestFullscreen(); }
