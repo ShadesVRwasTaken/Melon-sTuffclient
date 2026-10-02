@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MelonOS Dashboard</title>
+    <title>MelonOS Ecosystem</title>
     <!-- Injects the official Matrix Protocol Client Engine SDK natively -->
     <script src="https://cloudflare.com"></script>
     <style>
@@ -16,92 +16,93 @@
             --border-color: #2d5431;
             --desktop-wallpaper: radial-gradient(#203d23 1px, transparent 0);
         }
-        .light-theme {
-            --bg-color: #d1f5c9;
-            --panel-bg: #ffffff;
-            --accent-color: #2d5431;
-            --accent-hover: #162a18;
-            --text-color: #122414;
-            --border-color: #a2e88d;
-        }
         body {
             margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg-color); background-image: var(--desktop-wallpaper);
             background-size: 24px 24px; color: var(--text-color); overflow: hidden;
-            width: 100vw; height: 100vh; position: relative; user-select: none; transition: background 0.3s ease;
+            width: 100vw; height: 100vh; position: relative; user-select: none;
         }
         .desktop-area { position: absolute; top: 0; left: 0; width: 100vw; height: calc(100vh - 45px); z-index: 1; display: none; }
         .desktop-shortcut {
             position: absolute; width: 100px; height: 105px; display: flex; flex-direction: column;
             align-items: center; justify-content: center; gap: 8px; cursor: pointer;
-            padding: 5px; border-radius: 8px; transition: background 0.1s ease; box-sizing: border-box;
+            padding: 5px; border-radius: 8px; box-sizing: border-box;
         }
         .desktop-shortcut:hover { background-color: rgba(114, 219, 81, 0.15); }
         .shortcut-icon { font-size: 2.4rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); pointer-events: none; }
         .shortcut-label { font-size: 0.8rem; text-align: center; font-weight: 500; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); color: var(--text-color); pointer-events: none; word-break: break-all; }
         
-        .context-menu { position: absolute; background-color: var(--panel-bg); border: 1px solid var(--border-color); box-shadow: 0 5px 15px rgba(0,0,0,0.5); border-radius: 6px; padding: 5px 0; z-index: 20000000; display: none; min-width: 140px; }
+        .context-menu { position: absolute; background-color: var(--panel-bg); border: 1px solid var(--border-color); box-shadow: 0 5px 15px rgba(0,0,0,0.5); border-radius: 6px; padding: 5px 0; z-index: 20000000; display: none; min-width: 160px; }
         .context-item { padding: 8px 15px; font-size: 0.85rem; color: var(--text-color); cursor: pointer; display: flex; align-items: center; gap: 8px; }
         .context-item:hover { background-color: var(--accent-color); color: #122414; font-weight: bold; }
-        .context-item.disabled { color: #555 !important; cursor: not-allowed; background: transparent !important; }
         .window { position: absolute; background-color: var(--panel-bg); border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 2px solid var(--border-color); overflow: hidden; display: none; flex-direction: column; min-width: 320px; min-height: 200px; z-index: 5; }
         .window-header { background-color: rgba(0,0,0,0.15); padding: 10px 15px; border-bottom: 2px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; cursor: move; }
         .window-title { font-size: 0.9rem; font-weight: bold; color: var(--accent-color); display: flex; align-items: center; gap: 6px; }
         .window-controls { display: flex; gap: 8px; align-items: center; }
-        .win-btn { width: 14px; height: 14px; border-radius: 50%; border: none; cursor: pointer; display: inline-block; }
+        .win-btn { width: 14px; height: 14px; border-radius: 50%; border: none; cursor: pointer; }
         .win-close { background-color: #ff5f56; }
         .win-min { background-color: #ffbd2e; }
         .win-max { background-color: #27c93f; }
         .window-content { flex: 1; position: relative; width: 100%; height: 100%; background: #000; overflow: auto; color: #fff; }
         .window-content iframe { width: 100%; height: 100%; border: none; display: block; }
+        
+        #game-window:fullscreen { width: 100vw !important; height: 100vh !important; border: none !important; border-radius: 0 !important; z-index: 2147483647 !important; }
+        #game-window:fullscreen .window-header { display: none !important; }
+        #game-window:-webkit-full-screen { width: 100vw !important; height: 100vh !important; border: none !important; border-radius: 0 !important; z-index: 2147483647 !important; }
+        #game-window:-webkit-full-screen .window-header { display: none !important; }
+        /* FIXED ACCOUNT INITIALIZER LAYOUT COMPACT MODAL */
+        #matrix-auth-lock-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: radial-gradient(circle, #1a331c 0%, #090f0a 100%); z-index: 2147483647; display: flex; justify-content: center; align-items: center; }
+        .auth-card { background: var(--panel-bg); border: 2px solid var(--accent-color); padding: 25px; border-radius: 12px; width: 340px; box-shadow: 0 15px 40px rgba(0,0,0,0.6); text-align: center; box-sizing: border-box; }
+        .auth-input { width: 100%; padding: 10px; margin: 8px 0; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-color); color: #fff; box-sizing: border-box; font-size: 0.9rem; }
+        
         .app-padding { padding: 15px; box-sizing: border-box; height: 100%; width: 100%; background: #111411; }
         .flex-btn-row { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
-        .media-preview-box { width: 100%; height: calc(100% - 60px); background: #000; border-radius: 6px; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+        .media-preview-box { width: 100%; height: calc(100% - 60px); background: #000; border-radius: 6px; display: flex; justify-content: center; align-items: center; overflow: hidden; }
         .media-preview-box video { width: 100%; height: 100%; object-fit: contain; }
         .grid-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; padding: 5px; }
-        .grid-item-card { background: #1a331c; border: 1px solid var(--border-color); border-radius: 6px; padding: 10px; text-align: center; cursor: pointer; position: relative; }
-        .grid-item-card:hover { border-color: var(--accent-color); }
+        .grid-item-card { background: #1a331c; border: 1px solid var(--border-color); border-radius: 6px; padding: 10px; text-align: center; cursor: pointer; }
         .grid-item-card img { max-width: 100%; max-height: 80px; object-fit: contain; }
         .grid-item-label { font-size: 0.75rem; margin-top: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #fff; }
-        .note-textarea { width: 100%; height: calc(100% - 60px); background: #050a05; color: #72db51; border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; box-sizing: border-box; font-family: monospace; font-size: 1rem; resize: none; outline: none; }
+        .note-textarea { width: 100%; height: calc(100% - 60px); background: #050a05; color: #72db51; border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; box-sizing: border-box; font-family: monospace; outline: none; resize: none; }
+        /* NATIVE ELEMENT BACKEND CHAT UI RESKIN PANEL */
+        .chat-container { display: flex; height: 100%; background: #0d160e; }
+        .chat-sidebar { width: 180px; background: #122414; border-right: 1px solid var(--border-color); display: flex; flex-direction: column; }
+        .room-item { padding: 12px; font-size: 0.85rem; border-bottom: 1px solid rgba(114,219,81,0.1); cursor: pointer; }
+        .room-item:hover, .room-item.active-room { background: rgba(114,219,81,0.15); color: var(--accent-color); font-weight: bold; }
+        .chat-main { flex: 1; display: flex; flex-direction: column; background: #080f09; }
+        .chat-messages { flex: 1; padding: 15px; overflow-y: auto; font-size: 0.9rem; display: flex; flex-direction: column; gap: 10px; }
+        .chat-input-area { padding: 10px; background: #122414; border-top: 1px solid var(--border-color); display: flex; gap: 8px; }
         
-        .user-profile-badge { display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 3px 8px; border-radius: 5px; transition: background 0.2s; }
+        /* TASKBAR & TOAST POPUPS LAYOUT ADJUSTMENTS */
+        .taskbar { position: absolute; bottom: 0; left: 0; width: 100vw; height: 45px; background-color: var(--panel-bg); border-top: 2px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; padding: 0 15px; box-sizing: border-box; z-index: 1000000; }
+        .taskbar-left, .taskbar-right { display: flex; align-items: center; gap: 5px; height: 100%; }
+        #active-tabs-tray { display: flex; align-items: center; gap: 8px; }
+        .user-profile-badge { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; padding: 5px 10px; border-radius: 5px; height: 32px; box-sizing: border-box; }
         .user-profile-badge:hover { background: rgba(114,219,81,0.15); }
-        .user-avatar-node { width: 26px; height: 26px; border-radius: 50%; background: #72db51; object-fit: cover; border: 1px solid var(--border-color); }
-        #user-flyout-panel { position: absolute; bottom: 50px; left: 15px; background: var(--panel-bg); border: 2px solid var(--border-color); border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); width: 180px; display: none; flex-direction: column; z-index: 20000005; padding: 5px 0; }
+        .user-avatar-node { width: 24px; height: 26px; border-radius: 50%; background: #72db51; object-fit: cover; }
+        #user-flyout-panel { position: absolute; bottom: 50px; left: 15px; background: var(--panel-bg); border: 2px solid var(--border-color); border-radius: 8px; width: 180px; display: none; flex-direction: column; z-index: 20000005; padding: 5px 0; }
         .flyout-item { padding: 10px 15px; font-size: 0.85rem; color: #fff; cursor: pointer; }
         .flyout-item:hover { background: var(--accent-color); color: #122414; font-weight: bold; }
         #os-toast-container { position: fixed; bottom: 60px; right: 20px; z-index: 2147483645; display: flex; flex-direction: column; gap: 10px; }
         .os-toast { background: #122414; border-left: 5px solid #72db51; padding: 12px 20px; border-radius: 4px; box-shadow: 0 5px 15px rgba(0,0,0,0.4); display: flex; flex-direction: column; gap: 4px; min-width: 240px; animation: slideIn 0.3s ease-out; }
         @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        .taskbar { position: absolute; bottom: 0; left: 0; width: 100vw; height: 45px; background-color: var(--panel-bg); border-top: 2px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; padding: 0 15px; box-sizing: border-box; z-index: 1000000; }
-        .taskbar-left, .taskbar-right { display: flex; align-items: center; gap: 15px; }
-        .task-app-btn { background-color: rgba(114, 219, 81, 0.1); border: 1px solid var(--border-color); color: var(--text-color); padding: 5px 12px; border-radius: 5px; cursor: pointer; font-size: 0.8rem; }
-        .task-app-btn.active-tab { border-color: var(--accent-color); background-color: rgba(114, 219, 81, 0.25); }
-        .system-metric { font-size: 0.8rem; color: var(--accent-color); font-weight: 500; }
-        .browser-bar { background-color: rgba(0,0,0,0.1); padding: 8px 12px; display: flex; gap: 10px; border-bottom: 2px solid var(--border-color); }
-        .browser-input { flex: 1; padding: 6px 12px; border-radius: 5px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); font-size: 0.9rem; }
-        .resize-handle { position: absolute; width: 14px; height: 14px; right: 0; bottom: 0; cursor: se-resize; z-index: 1000; }
-        #iframe-splash { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #72db51; display: flex; justify-content: center; align-items: center; z-index: 10; opacity: 1; transition: opacity 1.0s ease-in-out; pointer-events: all; }
-        #iframe-splash img { max-width: 65%; max-height: 65%; object-fit: contain; }
-        .splash-hidden { opacity: 0 !important; pointer-events: none !important; }
         #os-media-viewer-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; height: 80%; max-width: 800px; background: #122414; border: 2px solid #72db51; box-shadow: 0 20px 50px rgba(0,0,0,0.8); border-radius: 12px; z-index: 2147483640; display: none; flex-direction: column; overflow: hidden; }
     </style>
 </head>
 <body>
     <div id="matrix-auth-lock-overlay">
         <div class="auth-card">
-            <h2 style="color:var(--accent-color); margin: 0 0 10px 0; font-size: 1.5rem;">🍉 MelonOS Initializer</h2>
-            <p style="color:#a2e88d; font-size:0.8rem; margin-bottom: 20px;">Please authenticate via your Matrix / Element account credentials to initialize the workspace shell parameters.</p>
-            <input type="text" id="matrix-homeserver-node" class="auth-input" value="https://matrix.org" placeholder="Homeserver URL">
-            <input type="text" id="matrix-username-node" class="auth-input" placeholder="Matrix Username">
-            <input type="password" id="matrix-password-node" class="auth-input" placeholder="Matrix Password">
-            <button class="task-app-btn" style="background:var(--accent-color); color:black; font-weight:bold; width:100%; padding:10px; margin-top:10px;" onclick="authenticateMatrixSession()">Unlock MelonOS Shell</button>
+            <h2 style="color:var(--accent-color); margin: 0 0 10px 0; font-size: 1.4rem;">🍉 MelonOS Initializer</h2>
+            <p style="color:#a2e88d; font-size:0.8rem; margin-bottom: 15px;">Authenticate with your Element / Matrix profile parameters to launch the dark green system workspace dashboard.</p>
+            <input type="text" id="matrix-homeserver-node" class="auth-input" value="https://matrix.org">
+            <input type="text" id="matrix-username-node" class="auth-input" placeholder="Username (e.g., gmanbro)">
+            <input type="password" id="matrix-password-node" class="auth-input" placeholder="Password">
+            <button class="task-app-btn" style="background:var(--accent-color); color:black; font-weight:bold; width:100%; padding:10px; margin-top:5px;" onclick="authenticateMatrixSession()">Unlock MelonOS Shell</button>
         </div>
     </div>
 
     <div id="user-flyout-panel">
-        <div class="flyout-item" onclick="openWindow('element-window')">💬 Open Friends (Element)</div>
+        <div class="flyout-item" onclick="openWindow('element-window')">💬 Open Friends Chat</div>
         <div class="flyout-item" style="color:#ff5f56; border-top:1px solid var(--border-color);" onclick="terminateOSSession()">🚪 Logout System</div>
     </div>
     <div id="os-toast-container"></div>
@@ -109,7 +110,7 @@
     <div id="desktop-context-menu" class="context-menu">
         <div class="context-item" id="menu-open-action">🟢 Open App</div>
         <div class="context-item" id="menu-delete-action" style="color:#ff5f56;">🗑 Delete App</div>
-        <div class="context-item" id="menu-bg-action" style="display:none; color:var(--accent-color);">🖼️ Clear Custom Wallpaper</div>
+        <div class="context-item" id="menu-bg-action" style="display:none; color:var(--accent-color);">🖼️ Reset Wallpaper</div>
     </div>
     <div id="file-context-menu" class="context-menu">
         <div class="context-item" id="file-menu-view">👁️ View Media</div>
@@ -118,7 +119,7 @@
 
     <div id="os-media-viewer-modal">
         <div class="window-header" style="background:#1a331c;"><span class="window-title" id="os-media-viewer-title">Media Viewer</span><button class="win-btn win-close" onclick="closeOSMediaViewer()"></button></div>
-        <div id="os-media-viewer-content" style="flex:1; background:#000; display:flex; justify-content:center; align-items:center; padding:10px;"></div>
+        <div id="os-media-viewer-content" style="flex:1; background:#000; display:flex; justify-content:center; align-items:center;"></div>
     </div>
 
     <div class="desktop-area" id="desktop-space">
@@ -141,6 +142,7 @@
         <div class="window-content" id="browser-target-root" style="background:#ffffff; margin:0; padding:0; height:calc(100% - 39px); width:100%; overflow:hidden;"><iframe id="custom-browser-iframe" src="https://vercel.app" style="width:100%; height:100%; border:none;" allow="autoplay; fullscreen; encrypted-media;"></iframe></div>
         <div class="resize-handle"></div>
     </div>
+
     <div class="window" id="camera-window" style="top: 120px; left: 320px; width: 500px; height: 400px; display: none;">
         <div class="window-header"><span class="window-title">📷 Camera Studio</span><div class="window-controls"><button class="win-btn win-min" onclick="minimizeWindow('camera-window')"></button><button class="win-btn win-max" onclick="maximizeWindow('camera-window')"></button><button class="win-btn win-close" onclick="closeWindow('camera-window')"></button></div></div>
         <div class="window-content app-padding"><div class="flex-btn-row"><button class="task-app-btn" onclick="startCameraBus()">Start Cam</button><button class="task-app-btn" id="cam-record-btn" onclick="toggleCameraRecording()" style="display:none;">🔴 Record Video</button><button class="task-app-btn" onclick="captureSystemScreen()">🖥️ Record Screen</button><button class="task-app-btn" onclick="triggerPhotoSnap()">📸 Take Photo</button><label class="system-metric" style="display:inline-flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" id="hardware-audio-toggle" checked> Mix Audio</label></div><div class="media-preview-box"><video id="camera-viewfinder" autoplay playsinline muted></video></div></div>
@@ -161,13 +163,16 @@
         <div class="window-content app-padding"><div class="flex-btn-row"><button class="task-app-btn" style="background:var(--accent-color); color:black; font-weight:bold;" onclick="saveLocalNoteChanges()">💾 Save Note</button></div><textarea id="notebook-textarea-node" class="note-textarea" placeholder="Type text here..."></textarea></div>
         <div class="resize-handle"></div>
     </div>
-    <div class="window" id="element-window" style="top: 70px; left: 200px; width: 400px; height: 500px; display: none;">
-        <div class="window-header"><span class="window-title">💬 Element Chat Client</span><div class="window-controls"><button class="win-btn win-min" onclick="minimizeWindow('element-window')"></button><button class="win-btn win-max" onclick="maximizeWindow('element-window')"></button><button class="win-btn win-close" onclick="closeWindow('element-window')"></button></div></div>
-        <div class="window-content" style="background:#111;"><iframe id="element-iframe-target" src="https://element.io" style="width:100%; height:100%; filter: hue-rotate(60deg) brightness(0.95);"></iframe></div>
+
+    <!-- WINDOW 7: FULLY NATIVE, RESKINNED CHAT WINDOW CONTROL WORKSPACE PANEL -->
+    <div class="window" id="element-window" style="top: 70px; left: 200px; width: 520px; height: 440px; display: none;">
+        <div class="window-header"><span class="window-title">💬 Friends Network Messenger</span><div class="window-controls"><button class="win-btn win-min" onclick="minimizeWindow('element-window')"></button><button class="win-btn win-max" onclick="maximizeWindow('element-window')"></button><button class="win-btn win-close" onclick="closeWindow('element-window')"></button></div></div>
+        <div class="window-content"><div class="chat-container"><div class="chat-sidebar" id="chat-rooms-list"></div><div class="chat-main"><div class="chat-messages" id="chat-messages-box"></div><div class="chat-input-area"><input type="text" id="chat-text-input" class="browser-input" placeholder="Type message..."><button class="task-app-btn" onclick="sendNativeMatrixMessage()">Send</button></div></div></div></div>
         <div class="resize-handle"></div>
     </div>
+
     <div class="taskbar">
-        <div class="taskbar-left" id="active-tabs-tray"><div class="user-profile-badge" onclick="toggleUserOSFlyout(event)"><img id="user-taskbar-avatar" class="user-avatar-node" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" alt="Avatar"><span id="user-taskbar-name" class="system-metric" style="font-weight:bold;">Loading Profile...</span></div></div>
+        <div class="taskbar-left"><div class="user-profile-badge" onclick="toggleUserOSFlyout(event)"><img id="user-taskbar-avatar" class="user-avatar-node" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" alt="Avatar"><span id="user-taskbar-name" class="system-metric" style="font-weight:bold;">Loading Profile...</span></div><div id="active-tabs-tray"></div></div>
         <div class="taskbar-right"><div class="system-metric" id="sys-battery">🔋 Batt: 100%</div><div class="system-metric" id="sys-clock">00:00:00 PM</div></div>
     </div>
     <script type="text/javascript">
@@ -177,16 +182,12 @@
         const ctxMenu = document.getElementById('desktop-context-menu');
         const fileCtxMenu = document.getElementById('file-context-menu');
         
-        let windowZIndex = 10, selectedShortcutId = null, selectedFileNode = null, matrixActiveClientInstance = null;
+        let windowZIndex = 10, selectedShortcutId = null, selectedFileNode = null, matrixActiveClientInstance = null, activeRoomId = null;
         const initialPositions = {}, virtualFilesList = [];
         const GRID_X = 115, GRID_Y = 125;
         let activeMediaRecorder = null, recordedMediaChunks = [], cameraDeviceStream = null;
 
-        gameFrame.addEventListener('load', function() {
-            loadStatus.innerText = "Syncing Options (5s)...";
-            setTimeout(function() { if (splashOverlay) { loadStatus.innerText = "Running"; splashOverlay.classList.add('splash-hidden'); setTimeout(() => splashOverlay.remove(), 1000); } }, 5000); 
-        });
-
+        gameFrame.addEventListener('load', function() { loadStatus.innerText = "Syncing Options (5s)..."; setTimeout(function() { if (splashOverlay) { loadStatus.innerText = "Running"; splashOverlay.classList.add('splash-hidden'); setTimeout(() => splashOverlay.remove(), 1000); } }, 5000); });
         function updateClock() { const now = new Date(); document.getElementById('sys-clock').innerText = now.toLocaleTimeString() + " | " + now.toLocaleDateString(); }
         setInterval(updateClock, 1000); updateClock();
         if(navigator.getBattery) { navigator.getBattery().then(bat => { const updateBatt = () => document.getElementById('sys-battery').innerText = `🔋 Batt: ${Math.round(bat.level * 100)}%`; updateBatt(); bat.addEventListener('levelchange', updateBatt); }); }
@@ -196,7 +197,7 @@
             const hsUrl = document.getElementById('matrix-homeserver-node').value.trim();
             const username = document.getElementById('matrix-username-node').value.trim();
             const password = document.getElementById('matrix-password-node').value.trim();
-            if(!username) { alert("Error: Username field cannot be empty!"); return; }
+            if(!username) { alert("Error: Username cannot be blank!"); return; }
             try {
                 matrixActiveClientInstance = matrixcs.createClient({ baseUrl: hsUrl });
                 matrixActiveClientInstance.login("m.login.password", { user: username, password: password })
@@ -255,21 +256,58 @@
             });
         }
         function initMatrixNotificationListeners() {
-            matrixActiveClientInstance.startClient({ initialSyncLimit: 1 });
+            matrixActiveClientInstance.startClient({ initialSyncLimit: 10 });
+            matrixActiveClientInstance.on("sync", function(state) {
+                if(state === "PREPARED") {
+                    const rooms = matrixActiveClientInstance.getRooms();
+                    const listContainer = document.getElementById('chat-rooms-list');
+                    listContainer.innerHTML = "";
+                    rooms.forEach(r => {
+                        const div = document.createElement('div'); div.className = "room-item"; div.innerText = r.name;
+                        div.onclick = () => {
+                            activeRoomId = r.roomId;
+                            document.querySelectorAll('.room-item').forEach(el => el.classList.remove('active-room'));
+                            div.classList.add('active-room');
+                            loadRoomTimeline(r);
+                        };
+                        listContainer.appendChild(div);
+                    });
+                }
+            });
+
             matrixActiveClientInstance.on("Room.timeline", function(event, room, toStartOfTimeline) {
                 if (toStartOfTimeline || event.getType() !== "m.room.message" || event.getSender() === matrixActiveClientInstance.getUserId()) return;
                 spawnOSSystemToast(room.name || "Matrix Friend", event.getContent().body || "Sent a file");
+                if(activeRoomId === room.roomId) loadRoomTimeline(room);
             });
-            matrixActiveClientInstance.on("Call.incoming", function(call) { spawnOSSystemToast("⚠️ Incoming Matrix Call", "Room ID: " + call.roomId); });
         }
 
-        function spawnOSSystemToast(title, msg) { const container = document.getElementById('os-toast-container'); const toast = document.createElement('div'); toast.className = 'os-toast'; toast.innerHTML = `<strong style="color:#72db51; font-size:0.85rem;">${title}</strong><span style="font-size:0.75rem; color:#fff;">${msg}</span>`; container.appendChild(toast); setTimeout(() => toast.remove(), 4500); }
+        function loadRoomTimeline(room) {
+            const box = document.getElementById('chat-messages-box'); box.innerHTML = "";
+            room.timeline.slice(-20).forEach(ev => {
+                if(ev.getType() === "m.room.message") {
+                    const div = document.createElement('div');
+                    div.innerHTML = `<span style="color:#72db51; font-weight:bold;">${ev.sender.name}:</span> <span style="color:#fff;">${ev.getContent().body}</span>`;
+                    box.appendChild(div);
+                }
+            });
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function sendNativeMatrixMessage() {
+            const input = document.getElementById('chat-text-input');
+            if(!activeRoomId || input.value.trim() === "") return;
+            matrixActiveClientInstance.sendTextMessage(activeRoomId, input.value.trim()).then(() => {
+                input.value = ""; loadRoomTimeline(matrixActiveClientInstance.getRoom(activeRoomId));
+            });
+        }
+
         function handleExternalOSUpload(input) { if(!input.files) return; Array.from(input.files).forEach(file => { const reader = new FileReader(); let type = file.type.startsWith("video/") ? "video" : "image"; reader.onload = (e) => { saveVirtualFile(file.name, e.target.result, type); }; reader.readAsDataURL(file); }); }
         function saveVirtualFile(name, src, type) { virtualFilesList.push({ name, src, type }); refreshExplorerGrids(); }
         
         function refreshExplorerGrids() {
             const gallery = document.getElementById('gallery-grid-target'); const files = document.getElementById('files-grid-target'); gallery.innerHTML = ""; files.innerHTML = "";
-            virtualFilesList.forEach((file, index) => {
+            virtualFilesList.forEach((file) => {
                 const card = document.createElement('div'); card.className = 'grid-item-card';
                 if(file.type === "image") card.innerHTML = `<img src="${file.src}">`; else card.innerHTML = `<span>🎥</span>`;
                 card.innerHTML += `<div class="grid-item-label">${file.name}</div>`;
@@ -278,13 +316,16 @@
                 files.appendChild(card.cloneNode(true)); if(file.type === "image" || file.type === "video") gallery.appendChild(card);
             });
         }
-        document.getElementById('file-menu-set-bg').onclick = () => {
-            if(selectedFileNode && selectedFileNode.type === "image") { document.documentElement.style.setProperty('--desktop-wallpaper', `url(${selectedFileNode.src})`); document.body.style.backgroundSize = "cover"; document.body.style.backgroundPosition = "center"; document.getElementById('menu-bg-action').style.display = "block"; alert("Wallpaper updated!"); } else { alert("Error: Requires image asset!"); } fileCtxMenu.style.display = "none";
-        };
+        document.getElementById('file-menu-set-bg').onclick = () => { if(selectedFileNode && selectedFileNode.type === "image") { document.documentElement.style.setProperty('--desktop-wallpaper', `url(${selectedFileNode.src})`); document.body.style.backgroundSize = "cover"; document.body.style.backgroundPosition = "center"; document.getElementById('menu-bg-action').style.display = "block"; alert("Wallpaper updated!"); } else { alert("Error: Requires image asset!"); } fileCtxMenu.style.display = "none"; };
         document.getElementById('file-menu-view').onclick = () => { if(selectedFileNode) launchOSMediaViewer(selectedFileNode.name, selectedFileNode.src, selectedFileNode.type); fileCtxMenu.style.display = "none"; };
-        document.getElementById('desktop-space').oncontextmenu = (e) => { if(e.target.id !== 'desktop-space') return; e.preventDefault(); ctxMenu.style.top = e.clientY + 'px'; ctxMenu.style.left = e.clientX + 'px'; selectedShortcutId = null; document.getElementById('menu-open-action').style.display = "none"; document.getElementById('menu-delete-action').style.display = "none"; ctxMenu.style.display = "block"; };
+        
+        document.getElementById('desktop-space').oncontextmenu = (e) => {
+            if(e.target.id !== 'desktop-space') return;
+            e.preventDefault(); ctxMenu.style.top = e.clientY + 'px'; ctxMenu.style.left = e.clientX + 'px'; selectedShortcutId = null;
+            document.getElementById('menu-open-action').style.display = "none"; document.getElementById('menu-delete-action').style.display = "none"; ctxMenu.style.display = "block";
+        };
+        
         document.getElementById('menu-bg-action').onclick = () => { document.documentElement.style.setProperty('--desktop-wallpaper', 'radial-gradient(#203d23 1px, transparent 0)'); document.body.style.backgroundSize = "24px 24px"; document.getElementById('menu-bg-action').style.display = "none"; };
-
         function launchOSMediaViewer(name, src, type) { const modal = document.getElementById('os-media-viewer-modal'); const title = document.getElementById('os-media-viewer-title'); const target = document.getElementById('os-media-viewer-content'); title.innerText = "Viewing Asset: " + name; if(type === "image") { target.innerHTML = `<img src="${src}" style="max-width:100%; max-height:100%; object-fit:contain; image-rendering:pixelated;">`; } else { target.innerHTML = `<video src="${src}" controls autoplay style="max-width:100%; max-height:100%;"></video>`; } modal.style.display = "flex"; }
         function closeOSMediaViewer() { document.getElementById('os-media-viewer-modal').style.display = "none"; document.getElementById('os-media-viewer-content').innerHTML = ""; }
         function saveLocalNoteChanges() { localStorage.setItem('melon_os_notepad_data', document.getElementById('notebook-textarea-node').value); alert("Note backed up!"); }
@@ -294,8 +335,7 @@
         function installCurrentWebpage() {
             const currentUrl = document.getElementById('browser-url-bar').value.trim(); const space = document.getElementById('desktop-space'); if(currentUrl === "") return;
             let safeId = "app-" + Math.floor(Math.random() * 100000);
-            const shortcut = document.createElement('div'); shortcut.className = 'desktop-shortcut'; shortcut.id = "shortcut-" + safeId; shortcut.setAttribute('data-window', safeId); shortcut.style.top = "20px"; shortcut.style.left = "250px";
-            shortcut.innerHTML = `<span class="shortcut-icon">🚀</span><span class="shortcut-label">${currentUrl}</span>`;
+            const shortcut = document.createElement('div'); shortcut.className = 'desktop-shortcut'; shortcut.id = "shortcut-" + safeId; shortcut.setAttribute('data-window', safeId); shortcut.style.top = "20px"; shortcut.style.left = "250px"; shortcut.innerHTML = `<span class="shortcut-icon">🚀</span><span class="shortcut-label">${currentUrl}</span>`;
             const newWin = document.createElement('div'); newWin.className = 'window'; newWin.id = safeId; newWin.style = "top:110px; left:220px; width:600px; height:400px; display:none;";
             newWin.innerHTML = `<div class="window-header"><span class="window-title">🚀 ${currentUrl}</span><div class="window-controls"><button class="win-btn win-min" onclick="minimizeWindow('${safeId}')"></button><button class="win-btn win-max" onclick="maximizeWindow('${safeId}')"></button><button class="win-btn win-close" onclick="closeWindow('${safeId}')"></button></div></div><div class="window-content"><iframe src="https://vercel.app"></iframe></div><div class="resize-handle"></div>`;
             document.body.appendChild(newWin); space.appendChild(shortcut); setupWindowManagerEvents(newWin); setupShortcutEvents(shortcut);
