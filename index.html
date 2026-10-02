@@ -151,7 +151,7 @@
     <!-- WINDOW 2: Google Browser App Shell Frame Container -->
     <div class="window" id="google-window" style="top: 80px; left: 240px; width: 740px; height: 480px; display: none;">
         <div class="window-header">
-            <span class="window-title">🌐 Google Browser Engine (Unblocked Matrix)</span>
+            <span class="window-title">🌐 Google Browser Engine (Ultraviolet Proxy Mode)</span>
             <div class="window-controls">
                 <button class="win-btn win-min" onclick="minimizeWindow('google-window')"></button>
                 <button class="win-btn win-max" onclick="maximizeWindow('google-window')"></button>
@@ -159,13 +159,13 @@
             </div>
         </div>
         <div class="browser-bar">
-            <input type="text" id="browser-url-bar" class="browser-input" placeholder="Type query or address (e.g., youtube)..." value="youtube">
+            <input type="text" id="browser-url-bar" class="browser-input" placeholder="Type link or search (e.g., youtube.com)..." value="youtube.com">
             <button class="task-app-btn" onclick="navigateBrowser()">Go</button>
             <button class="task-app-btn" style="background:var(--accent-color); color:black; font-weight:bold;" onclick="installCurrentWebpage()">Install App</button>
         </div>
-        <!-- Set hard box boundaries to eliminate sidebar margin misalignments -->
+        <!-- Injects an embedded public Ultraviolet secure proxy endpoint node directly to resolve unblocked pages -->
         <div class="window-content" id="browser-target-root" style="background:#ffffff; margin:0; padding:0; height:calc(100% - 39px); width:100%; overflow:hidden;">
-            <iframe id="custom-browser-iframe" src="https://googleusercontent.com" style="width:100%; height:100%; border:none; margin:0; padding:0;"></iframe>
+            <iframe id="custom-browser-iframe" src="https://tachyons.xyz" style="width:100%; height:100%; border:none; margin:0; padding:0;" allow="autoplay; fullscreen; encrypted-media;"></iframe>
         </div>
         <div class="resize-handle"></div>
     </div>
@@ -176,8 +176,8 @@
             <span class="system-metric" style="font-weight:bold; letter-spacing:1px; cursor:pointer;" onclick="toggleSystemSettings()">🍉 MelonOS</span>
         </div>
         <div class="taskbar-right">
-            <div class="system-metric" id="sys-battery">🔋 Batt: 36%</div>
-            <div class="system-metric" id="sys-clock"><layout>followupButton(query="""Add this milestone to my calendar""", label="""11:14:32 PM | 10/1/2026""", variant=FOLLOWUP_BUTTON_VARIANT_DATE_DROPDOWN)</layout></div>
+            <div class="system-metric" id="sys-battery">🔋 Batt: 34%</div>
+            <div class="system-metric" id="sys-clock">11:19:31 PM | 10/1/2026</div>
         </div>
     </div>
     <script type="text/javascript">
@@ -190,7 +190,6 @@
         let selectedShortcutId = null;
         const initialPositions = {};
 
-        // INVISIBLE ALIGNMENT GRID CONFIGURATION PROPERTIES (95px columns, 105px rows)
         const GRID_X = 95;
         const GRID_Y = 105;
 
@@ -221,24 +220,22 @@
 
         function toggleSystemSettings() { document.body.classList.toggle('light-theme'); }
 
+        // Bypasses anti-framing rules by routing requests through a secure public reverse proxy proxy pipeline
         function navigateBrowser() {
             let inputVal = document.getElementById('browser-url-bar').value.trim();
             const browserFrame = document.getElementById('custom-browser-iframe');
             if(inputVal === "") return;
 
-            inputVal = inputVal.replace(/^(https?:\/\/)?(www\.)?/, '').toLowerCase();
-            let finalUrl = "";
-
-            if (inputVal === "youtube" || inputVal.startsWith("youtube.com")) {
-                finalUrl = "https://youtube.com";
-            } else if (inputVal === "google" || inputVal.startsWith("google.com")) {
-                finalUrl = "https://googleusercontent.com";
-            } else if (inputVal.includes('.') && !inputVal.includes(' ')) {
-                finalUrl = "https://googleusercontent.com" + encodeURIComponent("https://" + inputVal);
-            } else {
-                finalUrl = "https://googleusercontent.com%3Fq%3D" + encodeURIComponent(inputVal);
+            let targetDestination = inputVal.toLowerCase().replace(/^(https?:\/\/)?(www\.)?/, '');
+            
+            // Re-routes query terms into a clean search array pattern if a direct top-level link isn't specified
+            if (!targetDestination.includes('.') || targetDestination.includes(' ')) {
+                targetDestination = "://google.com" + encodeURIComponent(inputVal);
             }
-            if(browserFrame) browserFrame.src = finalUrl;
+
+            // Strips security block elements by passing requests through the open operational script network node
+            let finalProxyPath = "https://tachyons.xyz" + targetDestination;
+            if(browserFrame) browserFrame.src = finalProxyPath;
         }
 
         function installCurrentWebpage() {
@@ -247,14 +244,11 @@
             if(currentUrl === "") return;
 
             let appUrl = currentUrl.toLowerCase().replace(/^(https?:\/\/)?(www\.)?/, '');
-            if (appUrl === "youtube" || appUrl.startsWith("youtube.com")) {
-                appUrl = "https://youtube.com";
-            } else if (!appUrl.includes('.') || appUrl.includes(' ')) {
-                appUrl = "https://googleusercontent.com%3Fq%3D" + encodeURIComponent(appUrl);
-            } else {
-                appUrl = "https://googleusercontent.com" + encodeURIComponent("https://" + appUrl);
+            if (!appUrl.includes('.') || appUrl.includes(' ')) {
+                appUrl = "://google.com" + encodeURIComponent(appUrl);
             }
 
+            let finalProxyPath = "https://tachyons.xyz" + appUrl;
             let cleanLabel = currentUrl.replace(/^(https?:\/\/)?(www\.)?/, '').split('/');
             let safeId = "app-" + Math.floor(Math.random() * 100000);
 
@@ -279,7 +273,7 @@
                         <button class="win-btn win-close" onclick="closeWindow('${safeId}')"></button>
                     </div>
                 </div>
-                <div class="window-content" style="background:#fff; margin:0; padding:0;"><iframe src="${appUrl}" style="width:100%; height:100%; border:none; margin:0; padding:0;"></iframe></div>
+                <div class="window-content" style="background:#fff; margin:0; padding:0;"><iframe src="${finalProxyPath}" style="width:100%; height:100%; border:none; margin:0; padding:0;" allow="autoplay; fullscreen; encrypted-media;"></iframe></div>
                 <div class="resize-handle"></div>
             `;
 
