@@ -163,6 +163,7 @@
             <button class="task-app-btn" onclick="navigateBrowser()">Go</button>
             <button class="task-app-btn" style="background:var(--accent-color); color:black; font-weight:bold;" onclick="installCurrentWebpage()">Install App</button>
         </div>
+        <!-- Set hard box boundaries to eliminate sidebar margin misalignments -->
         <div class="window-content" id="browser-target-root" style="background:#ffffff; margin:0; padding:0; height:calc(100% - 39px); width:100%; overflow:hidden;">
             <iframe id="custom-browser-iframe" src="https://googleusercontent.com" style="width:100%; height:100%; border:none; margin:0; padding:0;"></iframe>
         </div>
@@ -175,8 +176,8 @@
             <span class="system-metric" style="font-weight:bold; letter-spacing:1px; cursor:pointer;" onclick="toggleSystemSettings()">🍉 MelonOS</span>
         </div>
         <div class="taskbar-right">
-            <div class="system-metric" id="sys-battery">🔋 Batt: 100%</div>
-            <div class="system-metric" id="sys-clock">00:00:00 PM</div>
+            <div class="system-metric" id="sys-battery">🔋 Batt: 36%</div>
+            <div class="system-metric" id="sys-clock"><layout>followupButton(query="""Add this milestone to my calendar""", label="""11:14:32 PM | 10/1/2026""", variant=FOLLOWUP_BUTTON_VARIANT_DATE_DROPDOWN)</layout></div>
         </div>
     </div>
     <script type="text/javascript">
@@ -188,6 +189,10 @@
         let windowZIndex = 10;
         let selectedShortcutId = null;
         const initialPositions = {};
+
+        // INVISIBLE ALIGNMENT GRID CONFIGURATION PROPERTIES (95px columns, 105px rows)
+        const GRID_X = 95;
+        const GRID_Y = 105;
 
         gameFrame.addEventListener('load', function() {
             loadStatus.innerText = "Syncing Options (5s)...";
@@ -205,7 +210,6 @@
             document.getElementById('sys-clock').innerText = now.toLocaleTimeString() + " | " + now.toLocaleDateString();
         }
         setInterval(updateClock, 1000);
-        updateClock();
 
         if(navigator.getBattery) {
             navigator.getBattery().then(bat => {
@@ -218,18 +222,19 @@
         function toggleSystemSettings() { document.body.classList.toggle('light-theme'); }
 
         function navigateBrowser() {
-            const inputVal = document.getElementById('browser-url-bar').value.trim().toLowerCase();
+            let inputVal = document.getElementById('browser-url-bar').value.trim();
             const browserFrame = document.getElementById('custom-browser-iframe');
             if(inputVal === "") return;
+
+            inputVal = inputVal.replace(/^(https?:\/\/)?(www\.)?/, '').toLowerCase();
             let finalUrl = "";
-            if (inputVal === "youtube" || inputVal === "youtube.com") {
+
+            if (inputVal === "youtube" || inputVal.startsWith("youtube.com")) {
                 finalUrl = "https://youtube.com";
-            } else if (inputVal === "google" || inputVal === "google.com") {
+            } else if (inputVal === "google" || inputVal.startsWith("google.com")) {
                 finalUrl = "https://googleusercontent.com";
             } else if (inputVal.includes('.') && !inputVal.includes(' ')) {
-                let cleanUrl = inputVal;
-                if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) cleanUrl = 'https://' + cleanUrl;
-                finalUrl = "https://googleusercontent.com" + encodeURIComponent(cleanUrl);
+                finalUrl = "https://googleusercontent.com" + encodeURIComponent("https://" + inputVal);
             } else {
                 finalUrl = "https://googleusercontent.com%3Fq%3D" + encodeURIComponent(inputVal);
             }
@@ -241,14 +246,13 @@
             const space = document.getElementById('desktop-space');
             if(currentUrl === "") return;
 
-            let appUrl = currentUrl.toLowerCase();
-            if (appUrl === "youtube" || appUrl === "youtube.com") {
+            let appUrl = currentUrl.toLowerCase().replace(/^(https?:\/\/)?(www\.)?/, '');
+            if (appUrl === "youtube" || appUrl.startsWith("youtube.com")) {
                 appUrl = "https://youtube.com";
             } else if (!appUrl.includes('.') || appUrl.includes(' ')) {
                 appUrl = "https://googleusercontent.com%3Fq%3D" + encodeURIComponent(appUrl);
             } else {
-                if (!appUrl.startsWith('http://') && !appUrl.startsWith('https://')) appUrl = 'https://' + appUrl;
-                appUrl = "https://googleusercontent.com" + encodeURIComponent(appUrl);
+                appUrl = "https://googleusercontent.com" + encodeURIComponent("https://" + appUrl);
             }
 
             let cleanLabel = currentUrl.replace(/^(https?:\/\/)?(www\.)?/, '').split('/');
@@ -258,8 +262,8 @@
             shortcut.className = 'desktop-shortcut';
             shortcut.id = "shortcut-" + safeId;
             shortcut.setAttribute('data-window', safeId);
-            shortcut.style.top = "100px";
-            shortcut.style.left = "140px";
+            shortcut.style.top = "20px";
+            shortcut.style.left = "130px";
             shortcut.innerHTML = `<span class="shortcut-icon">🚀</span><span class="shortcut-label">${cleanLabel}</span>`;
             
             const newWin = document.createElement('div');
@@ -275,7 +279,7 @@
                         <button class="win-btn win-close" onclick="closeWindow('${safeId}')"></button>
                     </div>
                 </div>
-                <div class="window-content" style="background:#fff; margin:0; padding:0;"><iframe src="${appUrl}" style="width:100%; height:100%; border:none;"></iframe></div>
+                <div class="window-content" style="background:#fff; margin:0; padding:0;"><iframe src="${appUrl}" style="width:100%; height:100%; border:none; margin:0; padding:0;"></iframe></div>
                 <div class="resize-handle"></div>
             `;
 
@@ -288,23 +292,16 @@
             sc.addEventListener('dblclick', () => openWindow(sc.getAttribute('data-window')));
 
             sc.addEventListener('contextmenu', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
+                e.preventDefault(); e.stopPropagation();
                 selectedShortcutId = sc.id;
-                
-                ctxMenu.style.top = e.clientY + 'px';
-                ctxMenu.style.left = e.clientX + 'px';
-                ctxMenu.style.display = 'block';
+                ctxMenu.style.top = e.clientY + 'px'; ctxMenu.style.left = e.clientX + 'px'; ctxMenu.style.display = 'block';
 
                 const targetWin = sc.getAttribute('data-window');
                 const delBtn = document.getElementById('menu-delete-action');
-                
                 if(targetWin === 'game-window' || targetWin === 'google-window') {
-                    delBtn.classList.add('disabled');
-                    delBtn.style.opacity = "0.4";
+                    delBtn.classList.add('disabled'); delBtn.style.opacity = "0.4";
                 } else {
-                    delBtn.classList.remove('disabled');
-                    delBtn.style.opacity = "1";
+                    delBtn.classList.remove('disabled'); delBtn.style.opacity = "1";
                 }
             });
 
@@ -320,6 +317,18 @@
                 function dropIcon() {
                     document.removeEventListener('mousemove', dragIcon);
                     document.removeEventListener('mouseup', dropIcon);
+
+                    let currentLeft = sc.offsetLeft;
+                    let currentTop = sc.offsetTop;
+
+                    let snappedLeft = Math.round(currentLeft / GRID_X) * GRID_X;
+                    let snappedTop = Math.round(currentTop / GRID_Y) * GRID_Y;
+
+                    if(snappedLeft < 10) snappedLeft = 20;
+                    if(snappedTop < 10) snappedTop = 20;
+
+                    sc.style.left = snappedLeft + "px";
+                    sc.style.top = snappedTop + "px";
                 }
                 document.addEventListener('mousemove', dragIcon);
                 document.addEventListener('mouseup', dropIcon);
@@ -327,10 +336,7 @@
         }
 
         document.getElementById('menu-open-action').onclick = () => {
-            if(selectedShortcutId) {
-                const sc = document.getElementById(selectedShortcutId);
-                openWindow(sc.getAttribute('data-window'));
-            }
+            if(selectedShortcutId) openWindow(document.getElementById(selectedShortcutId).getAttribute('data-window'));
         };
 
         document.getElementById('menu-delete-action').onclick = () => {
@@ -338,11 +344,8 @@
                 const sc = document.getElementById(selectedShortcutId);
                 const targetWin = sc.getAttribute('data-window');
                 if(targetWin === 'game-window' || targetWin === 'google-window') return;
-
-                document.getElementById(targetWin).remove();
-                sc.remove();
-                ctxMenu.style.display = 'none';
-                updateTaskbarTray();
+                document.getElementById(targetWin).remove(); sc.remove();
+                ctxMenu.style.display = 'none'; updateTaskbarTray();
             }
         };
 
@@ -374,10 +377,8 @@
                 if(win.style.display !== 'none') {
                     const label = win.querySelector('.window-title').innerText.split('\n');
                     const tab = document.createElement('button');
-                    tab.className = 'task-app-btn active-tab';
-                    tab.innerText = label;
-                    tab.onclick = () => minimizeWindow(win.id);
-                    tray.appendChild(tab);
+                    tab.className = 'task-app-btn active-tab'; tab.innerText = label;
+                    tab.onclick = () => minimizeWindow(win.id); tray.appendChild(tab);
                 }
             });
         }
