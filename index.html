@@ -3,253 +3,307 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MelonClient Hub</title>
-    <!-- Official YouTube Player API Endpoint Script Hook -->
-    <script src="https://youtube.com"></script>
+    <title>MelonOS Dashboard</title>
     <style>
-        /* Global Reset & Virtual Desktop Theme */
+        /* Global OS Framework Theme Settings */
+        :root {
+            --bg-color: #162a18;
+            --panel-bg: #122414;
+            --accent-color: #72db51;
+            --accent-hover: #a2e88d;
+            --text-color: #ffffff;
+            --border-color: #2d5431;
+        }
+        .light-theme {
+            --bg-color: #d1f5c9;
+            --panel-bg: #ffffff;
+            --accent-color: #2d5431;
+            --accent-hover: #162a18;
+            --text-color: #122414;
+            --border-color: #a2e88d;
+        }
         body {
-            margin: 0; padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #162a18; 
-            background-image: radial-gradient(#203d23 1px, transparent 0);
-            background-size: 24px 24px;
-            color: #ffffff; overflow: hidden; width: 100vw; height: 100vh;
-            position: relative; user-select: none;
+            margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color); color: var(--text-color);
+            overflow: hidden; width: 100vw; height: 100vh; position: relative; user-select: none;
+            transition: background 0.3s ease;
         }
-        header {
-            background-color: #122414; padding: 12px 20px;
-            display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 3px solid #72db51; z-index: 10000; position: relative;
+
+        /* DESKTOP APP SHORTCUTS GRID */
+        .desktop-grid {
+            position: absolute; top: 20px; left: 20px; bottom: 60px; right: 20px;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            grid-template-rows: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 20px; grid-auto-flow: column; z-index: 1;
         }
-        header h1 { margin: 0; font-size: 1.6rem; color: #72db51; letter-spacing: 1px; }
-        
-        /* WINDOW MANAGER STYLES AND LAYOUT OVERRIDES */
+        .desktop-shortcut {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 8px; cursor: pointer; padding: 10px; border-radius: 8px; transition: background 0.2s;
+        }
+        .desktop-shortcut:hover { background-color: rgba(114, 219, 81, 0.15); }
+        .shortcut-icon { font-size: 2.2rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
+        .shortcut-label { font-size: 0.8rem; text-align: center; font-weight: 500; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); color: var(--text-color); }
+
+        /* WINDOW LAYER SYSTEM DEFINITIONS */
         .window {
-            position: absolute; background-color: #122414;
+            position: absolute; background-color: var(--panel-bg);
             border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            border: 2px solid #2d5431; overflow: hidden;
-            display: flex; flex-direction: column; min-width: 280px; min-height: 160px;
+            border: 2px solid var(--border-color); overflow: hidden;
+            display: flex; flex-direction: column; min-width: 320px; min-height: 200px; z-index: 5;
         }
         .window-header {
-            background-color: #1a331c; padding: 10px 15px; border-bottom: 2px solid #2d5431;
+            background-color: rgba(0,0,0,0.15); padding: 10px 15px; border-bottom: 2px solid var(--border-color);
             display: flex; justify-content: space-between; align-items: center; cursor: move;
         }
-        .window-title { margin: 0; font-size: 0.95rem; font-weight: bold; color: #72db51; }
+        .window-title { font-size: 0.9rem; font-weight: bold; color: var(--accent-color); display: flex; align-items: center; gap: 6px; }
+        .window-controls { display: flex; gap: 8px; align-items: center; }
+        .win-btn {
+            width: 14px; height: 14px; border-radius: 50%; border: none; cursor: pointer; display: inline-block;
+        }
+        .win-close { background-color: #ff5f56; }
+        .win-min { background-color: #ffbd2e; }
+        .win-max { background-color: #27c93f; }
         .window-content { flex: 1; position: relative; width: 100%; height: 100%; background: #000; }
         .window-content iframe { width: 100%; height: 100%; border: none; display: block; }
+
+        /* FULLSCREEN SYSTEM OVERRIDES FOR THE GAME WINDOW */
+        #game-window:fullscreen { width: 100vw !important; height: 100vh !important; border: none !important; border-radius: 0 !important; }
+        #game-window:fullscreen .window-header { display: none !important; }
+        #game-window:fullscreen .window-content { height: 100vh !important; }
+
+        /* GLOBAL SYSTEM TASKBAR STYLING */
+        .taskbar {
+            position: absolute; bottom: 0; left: 0; width: 100vw; height: 45px;
+            background-color: var(--panel-bg); border-top: 2px solid var(--border-color);
+            display: flex; justify-content: space-between; align-items: center; padding: 0 15px;
+            box-sizing: border-box; z-index: 1000000;
+        }
+        .taskbar-left, .taskbar-center, .taskbar-right { display: flex; align-items: center; gap: 15px; }
+        .task-app-btn {
+            background-color: rgba(114, 219, 81, 0.1); border: 1px solid var(--border-color);
+            color: var(--text-color); padding: 5px 12px; border-radius: 5px; cursor: pointer; font-size: 0.8rem;
+        }
+        .task-app-btn.active-tab { border-color: var(--accent-color); background-color: rgba(114, 219, 81, 0.25); }
+        .system-metric { font-size: 0.8rem; color: var(--accent-color); font-weight: 500; }
         
-        /* FULLSCREEN INTERACTIVE HOVER ACTIONS */
-        #game-card .window-header {
-            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s ease;
-        }
-        #game-card:fullscreen .window-header { 
-            position: absolute; top: 0; left: 0; width: 100%; z-index: 100; 
-            transform: translateY(-100%); opacity: 0; 
-        }
-        #game-card:fullscreen:hover .window-header { transform: translateY(0); opacity: 1; }
-        #game-card:fullscreen .game-wrapper { padding-top: 0; height: 100vh; width: 100vw; }
-        #game-card:fullscreen .game-wrapper iframe { height: 100vh; width: 100vw; }
+        /* WEB ENGINE ENVIRONMENT INTERFACE */
+        .browser-bar { background-color: rgba(0,0,0,0.1); padding: 8px 12px; display: flex; gap: 10px; border-bottom: 2px solid var(--border-color); }
+        .browser-input { flex: 1; padding: 6px 12px; border-radius: 5px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); }
+        .resize-handle { position: absolute; width: 14px; height: 14px; right: 0; bottom: 0; cursor: se-resize; z-index: 1000; }
 
-        #game-card:-webkit-full-screen .window-header { position: absolute; top: 0; left: 0; width: 100%; z-index: 100; transform: translateY(-100%); opacity: 0; }
-        #game-card:-webkit-full-screen:hover .window-header { transform: translateY(0); opacity: 1; }
-        #game-card:-webkit-full-screen .game-wrapper { padding-top: 0; height: 100vh; width: 100vw; }
-        #game-card:-webkit-full-screen .game-wrapper iframe { height: 100vh; width: 100vw; }
-
-        /* RESIZE TRACKER HANDLES */
-        .resize-handle {
-            position: absolute; width: 16px; height: 16px; background-color: transparent;
-            right: 0; bottom: 0; cursor: se-resize; z-index: 1000;
-        }
-        .control-row { display: flex; align-items: center; gap: 12px; }
-        .action-btn {
-            background-color: #72db51; color: #122414; border: none; padding: 6px 12px;
-            font-weight: bold; font-size: 0.8rem; border-radius: 5px; cursor: pointer;
-            transition: background 0.2s;
-        }
-        .action-btn:hover { background-color: #a2e88d; }
-        
-        /* MIXER KNOB SLIDERS */
-        .vol-mixer { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #a2e88d; }
-        .vol-slider {
-            -webkit-appearance: none; width: 80px; height: 6px; border-radius: 3px;
-            background: #2d5431; outline: none; cursor: pointer;
-        }
-        .vol-slider::-webkit-slider-thumb {
-            -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%;
-            background: #72db51; cursor: pointer;
-        }
-
-        #game-wrapper-box { width: 100%; height: 100%; position: relative; }
-        #game-wrapper-box iframe { width: 100%; height: 100%; border: none; }
-
-        /* RUNTIME INTRO MASK */
         #iframe-splash {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: #72db51; display: flex; justify-content: center;
-            align-items: center; z-index: 10; opacity: 1; transition: opacity 1.0s ease-in-out; pointer-events: all;
+            background-color: #72db51; display: flex; justify-content: center; align-items: center; z-index: 10; opacity: 1; transition: opacity 1.0s ease-in-out; pointer-events: all;
         }
         #iframe-splash img { max-width: 65%; max-height: 65%; object-fit: contain; }
         .splash-hidden { opacity: 0 !important; pointer-events: none !important; }
-        
-        /* BALANCED WINDOW PLACEMENTS FOR STANDARD RESPONSIVE VIEWS */
-        #game-card { top: 75px; left: 20px; width: 680px; height: 440px; z-index: 10; }
-        #spotify-card { top: 75px; right: 20px; width: 340px; height: 420px; z-index: 5; }
-        #youtube-card { bottom: 20px; right: 20px; width: 440px; height: 290px; z-index: 5; }
     </style>
 </head>
 <body>
-    <header>
-        <h1>MELONCLIENT OS</h1>
-        <div class="control-row">
-            <div class="vol-mixer">
-                <span>🔊 Game Vol:</span>
-                <input type="range" id="game-volume-slider" class="vol-slider" min="0" max="100" value="100" oninput="adjustGameVolume(this.value)">
-            </div>
-            <button class="action-btn" onclick="toggleFullscreen()">🖵 Fullscreen Client</button>
-        </div>
-    </header>
 
-    <!-- WINDOW WORKSPACE 1: Scalable Game Container Framework -->
-    <div class="window" id="game-card">
-        <div class="window-header">
-            <span class="window-title">🎮 MelonClient Engine Canvas</span>
-            <span id="load-status" style="color:#a2e88d; font-size:0.8rem;">Connecting...</span>
+    <!-- Desktop Icons Environment Workspace Layout -->
+    <div class="desktop-grid" id="desktop-icons">
+        <div class="desktop-shortcut" onclick="openWindow('game-window')">
+            <span class="shortcut-icon">🎮</span>
+            <span class="shortcut-label">MelonClient</span>
         </div>
-        <div class="window-content" style="height: calc(100% - 39px); width:100%;">
-            <div id="game-wrapper-box">
-                <div id="iframe-splash">
-                    <img src="MelonClient.png" alt="MelonClient Logo">
+        <div class="desktop-shortcut" onclick="openWindow('google-window')">
+            <span class="shortcut-icon">🌐</span>
+            <span class="shortcut-label">Google</span>
+        </div>
+    </div>
+
+    <!-- WINDOW 1: Core Eaglercraft Minecraft Environment Container -->
+    <div class="window" id="game-window" style="top: 50px; left: 150px; width: 720px; height: 460px;">
+        <div class="window-header">
+            <span class="window-title">🎮 MelonClient Workspace <span id="load-status" style="color:var(--accent-hover); font-size:0.75rem; margin-left:10px;">Connecting...</span></span>
+            <div class="window-controls">
+                <button class="win-btn win-min" onclick="minimizeWindow('game-window')"></button>
+                <button class="win-btn win-max" onclick="maximizeWindow('game-window')"></button>
+                <button class="win-btn win-close" onclick="closeWindow('game-window')"></button>
+            </div>
+        </div>
+        <div class="window-content">
+            <div id="iframe-splash">
+                <img src="MelonClient.png" alt="MelonClient Logo">
+            </div>
+            <iframe id="game-frame" src="game.html" title="MelonClient Sandbox"></iframe>
+        </div>
+        <div class="resize-handle"></div>
+    </div>
+        <!-- WINDOW 2: Core Google Hub App Sub-System Environment Layer -->
+        <div class="window" id="google-window" style="top: 80px; left: 220px; width: 640px; height: 440px; display: none;">
+            <div class="window-header">
+                <span class="window-title">🌐 Google Browser Engine</span>
+                <div class="window-controls">
+                    <button class="win-btn win-min" onclick="minimizeWindow('google-window')"></button>
+                    <button class="win-btn win-max" onclick="maximizeWindow('google-window')"></button>
+                    <button class="win-btn win-close" onclick="closeWindow('google-window')"></button>
                 </div>
-                <iframe id="game-frame" src="game.html" title="MelonClient Frame View" allow="fullscreen"></iframe>
+            </div>
+            <div class="browser-bar">
+                <input type="text" id="browser-url-bar" class="browser-input" value="https://bing.com">
+                <button class="task-app-btn" onclick="navigateBrowser()">Go</button>
+                <button class="task-app-btn" style="background:var(--accent-color); color:black; font-weight:bold;" onclick="installCurrentWebpage()">Install App</button>
+            </div>
+            <div class="window-content">
+                <iframe id="browser-frame" src="https://bing.com" allow="fullscreen"></iframe>
+            </div>
+            <div class="resize-handle"></div>
+        </div>
+
+        <!-- MASTER HARDWARE OPERATIONAL TASKBAR SYSTEM -->
+        <div class="taskbar">
+            <div class="taskbar-left" id="active-tabs-tray">
+                <span class="system-metric" style="font-weight:bold; letter-spacing:1px; cursor:pointer;" onclick="toggleSystemSettings()">🍉 MelonOS</span>
+            </div>
+            <div class="taskbar-right">
+                <div class="system-metric" id="sys-battery">🔋 Batt: 100%</div>
+                <div class="system-metric" id="sys-clock">00:00:00 PM</div>
             </div>
         </div>
-        <div class="resize-handle"></div>
-    </div>
-    <!-- WINDOW WORKSPACE 2: Secure Authenticated Spotify Widget Panel -->
-    <div class="window" id="spotify-card">
-        <div class="window-header">
-            <span class="window-title">🎵 Spotify Mini-Player</span>
-            <span style="color:#a2e88d; font-size: 0.75rem;">Online</span>
-        </div>
-        <div class="window-content" style="height: calc(100% - 39px);">
-            <!-- Injected missing web permissions layout parameters to clear the empty file bug -->
-            <iframe id="spotify-frame" src="https://spotify.com" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-        </div>
-        <div class="resize-handle"></div>
-    </div>
-
-    <!-- WINDOW WORKSPACE 3: Fixed Live API YouTube Engine Window -->
-    <div class="window" id="youtube-card">
-        <div class="window-header">
-            <span class="window-title">📺 YouTube Miniplayer</span>
-            <div class="vol-mixer">
-                <span>Vol:</span>
-                <input type="range" class="vol-slider" min="0" max="100" value="50" oninput="adjustYTVolume(this.value)">
-            </div>
-        </div>
-        <div class="window-content" style="height: calc(100% - 39px);">
-            <!-- Embedded placeholder targeted directly by the automated initialization script -->
-            <div id="yt-player-placeholder" style="width:100%; height:100%;"></div>
-        </div>
-        <div class="resize-handle"></div>
-    </div>
-
     <script type="text/javascript">
         const gameFrame = document.getElementById('game-frame');
         const splashOverlay = document.getElementById('iframe-splash');
         const loadStatus = document.getElementById('load-status');
-        const gameCard = document.getElementById('game-card');
-        let ytPlayer = null;
+        
+        let windowZIndex = 10;
+        const initialPositions = {};
 
-        // Triggers the active media proxy stream loader using an active 24/7 video track ID
-        function onYouTubeIframeAPIReady() {
-            ytPlayer = new YT.Player('yt-player-placeholder', {
-                width: '100%',
-                height: '100%',
-                videoId: 'jfKfPfyJRdk', // Verified, stable 24/7 Lofi Stream track ID asset
-                playerVars: { 'controls': 1, 'enablejsapi': 1, 'autoplay': 1, 'mute': 0 },
-                events: { 'onReady': (e) => e.target.setVolume(50) }
-            });
-        }
-
-        // Monitors system asset delivery speeds to complete the loading window mask
         gameFrame.addEventListener('load', function() {
-            loadStatus.innerText = "Initializing Options...";
+            loadStatus.innerText = "Syncing Options (5s)...";
             setTimeout(function() {
                 if (splashOverlay) {
                     loadStatus.innerText = "Running";
-                    loadStatus.style.color = "#72db51";
                     splashOverlay.classList.add('splash-hidden');
                     setTimeout(() => splashOverlay.remove(), 1000);
                 }
             }, 5000); 
         });
 
-        // DESKTOP INTERACTION SYSTEM CORE SCRIPT
-        let highestZ = 10;
-        document.querySelectorAll('.window').forEach(win => {
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('sys-clock').innerText = now.toLocaleTimeString() + " | " + now.toLocaleDateString();
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        if(navigator.getBattery) {
+            navigator.getBattery().then(bat => {
+                const updateBatt = () => document.getElementById('sys-battery').innerText = `🔋 Batt: ${Math.round(bat.level * 100)}%`;
+                updateBatt();
+                bat.addEventListener('levelchange', updateBatt);
+            });
+        }
+
+        function toggleSystemSettings() { document.body.classList.toggle('light-theme'); }
+
+        function navigateBrowser() {
+            let url = document.getElementById('browser-url-bar').value.trim();
+            if(!url.startsWith('http://') && !url.startsWith('https://')) url = 'https://' + url;
+            document.getElementById('browser-frame').src = url;
+        }
+
+        function installCurrentWebpage() {
+            const currentUrl = document.getElementById('browser-url-bar').value.trim();
+            const grid = document.getElementById('desktop-icons');
+            let cleanLabel = currentUrl.replace(/^(https?:\/\/)?(www\.)?/, '').split('/')[0];
+            let safeId = "app-" + Math.floor(Math.random() * 100000);
+
+            const shortcut = document.createElement('div');
+            shortcut.className = 'desktop-shortcut';
+            shortcut.innerHTML = `<span class="shortcut-icon">🚀</span><span class="shortcut-label">${cleanLabel}</span>`;
+            
+            const newWin = document.createElement('div');
+            newWin.className = 'window';
+            newWin.id = safeId;
+            newWin.style = "top:100px; left:250px; width:500px; height:350px; display:none;";
+            newWin.innerHTML = `
+                <div class="window-header">
+                    <span class="window-title">🚀 ${cleanLabel}</span>
+                    <div class="window-controls">
+                        <button class="win-btn win-min" onclick="minimizeWindow('${safeId}')"></button>
+                        <button class="win-btn win-max" onclick="maximizeWindow('${safeId}')"></button>
+                        <button class="win-btn win-close" onclick="closeWindow('${safeId}')"></button>
+                    </div>
+                </div>
+                <div class="window-content"><iframe src="${currentUrl}"></iframe></div>
+                <div class="resize-handle"></div>
+            `;
+
+            document.body.appendChild(newWin);
+            grid.appendChild(shortcut);
+            setupWindowManagerEvents(newWin);
+            
+            shortcut.onclick = () => openWindow(safeId);
+        }
+
+        function openWindow(id) {
+            const win = document.getElementById(id);
+            win.style.display = 'flex';
+            windowZIndex++;
+            win.style.zIndex = windowZIndex;
+            updateTaskbarTray();
+        }
+        function closeWindow(id) { document.getElementById(id).style.display = 'none'; updateTaskbarTray(); }
+        function minimizeWindow(id) {
+            const win = document.getElementById(id);
+            win.style.display = win.style.display === 'none' ? 'flex' : 'none';
+        }
+        function maximizeWindow(id) {
+            const win = document.getElementById(id);
+            if(id === 'game-window') {
+                if(win.requestFullscreen) { win.requestFullscreen(); }
+                else if(win.webkitRequestFullscreen) { win.webkitRequestFullscreen(); }
+                return;
+            }
+            if (win.style.width === '100vw') {
+                win.style.top = initialPositions[id].top; win.style.left = initialPositions[id].left;
+                win.style.width = initialPositions[id].width; win.style.height = initialPositions[id].height;
+            } else {
+                initialPositions[id] = { top: win.style.top, left: win.style.left, width: win.style.width, height: win.style.height };
+                win.style.top = '0px'; win.style.left = '0px'; win.style.width = '100vw'; win.style.height = 'calc(100vh - 45px)';
+            }
+        }
+
+        function updateTaskbarTray() {
+            const tray = document.getElementById('active-tabs-tray');
+            tray.innerHTML = '<span class="system-metric" style="font-weight:bold; letter-spacing:1px; cursor:pointer;" onclick="toggleSystemSettings()">🍉 MelonOS</span>';
+            document.querySelectorAll('.window').forEach(win => {
+                if(win.style.display !== 'none') {
+                    const label = win.querySelector('.window-title').innerText.split('\n')[0];
+                    const tab = document.createElement('button');
+                    tab.className = 'task-app-btn active-tab';
+                    tab.innerText = label;
+                    tab.onclick = () => minimizeWindow(win.id);
+                    tray.appendChild(tab);
+                }
+            });
+        }
+
+        function setupWindowManagerEvents(win) {
             const header = win.querySelector('.window-header');
             const handle = win.querySelector('.resize-handle');
             
-            win.addEventListener('mousedown', () => { highestZ++; win.style.zIndex = highestZ; });
-
-            // Universal Frame Dragging
+            win.addEventListener('mousedown', () => { windowZIndex++; win.style.zIndex = windowZIndex; });
             header.addEventListener('mousedown', (e) => {
-                if(e.target.classList.contains('vol-slider')) return;
-                highestZ++; win.style.zIndex = highestZ;
+                if(e.target.classList.contains('win-btn') || e.target.classList.contains('browser-input')) return;
                 let startX = e.clientX, startY = e.clientY, origLeft = win.offsetLeft, origTop = win.offsetTop;
-                function doDrag(ev) {
-                    win.style.left = (origLeft + ev.clientX - startX) + 'px';
-                    win.style.top = (origTop + ev.clientY - startY) + 'px';
-                }
-                function stopDrag() { document.removeEventListener('mousemove', doDrag); document.removeEventListener('mouseup', stopDrag); }
-                document.addEventListener('mousemove', doDrag); document.addEventListener('mouseup', stopDrag);
+                function drag(ev) { win.style.left = (origLeft + ev.clientX - startX) + 'px'; win.style.top = (origTop + ev.clientY - startY) + 'px'; }
+                function drop() { document.removeEventListener('mousemove', drag); document.removeEventListener('mouseup', drop); }
+                document.addEventListener('mousemove', drag); document.addEventListener('mouseup', drop);
             });
-
-            // Universal Frame Resizing + Canvas Dynamic Scaling Refresher Updates
             handle.addEventListener('mousedown', (e) => {
                 e.preventDefault();
                 let startW = win.offsetWidth, startH = win.offsetHeight, startX = e.clientX, startY = e.clientY;
-                function doResize(ev) {
-                    win.style.width = (startW + ev.clientX - startX) + 'px';
-                    win.style.height = (startH + ev.clientY - startY) + 'px';
-                    
-                    // Forces the squished internal canvas rendering tree to clear out layout space recalculations
-                    if(win.id === 'game-card' && gameFrame.contentWindow) {
-                        gameFrame.style.width = "100%";
-                        gameFrame.style.height = "100%";
-                    }
-                }
-                function stopResize() { document.removeEventListener('mousemove', doResize); document.removeEventListener('mouseup', stopResize); }
-                document.addEventListener('mousemove', doResize); document.addEventListener('mouseup', stopResize);
+                function resize(ev) { win.style.width = (startW + ev.clientX - startX) + 'px'; win.style.height = (startH + ev.clientY - startY) + 'px'; }
+                function unbind() { document.removeEventListener('mousemove', resize); document.removeEventListener('mouseup', unbind); }
+                document.addEventListener('mousemove', resize); document.addEventListener('mouseup', unbind);
             });
-        });
-
-        // BALANCED GAIN ATTENUATOR NETWORKS
-        function adjustGameVolume(val) {
-            try {
-                if (gameFrame.contentWindow) {
-                    gameFrame.contentWindow.postMessage({ type: "EAGLER_VOLUME", value: val / 100 }, "*");
-                }
-            } catch(e) {}
         }
 
-        function adjustYTVolume(val) {
-            if (ytPlayer && typeof ytPlayer.setVolume === 'function') {
-                ytPlayer.setVolume(parseInt(val));
-            }
-        }
-
-        function toggleFullscreen() {
-            if (!document.fullscreenElement && !document.webkitFullscreenElement) {  
-                if (gameCard.requestFullscreen) { gameCard.requestFullscreen(); }
-                else if (gameCard.webkitRequestFullscreen) { gameCard.webkitRequestFullscreen(); }
-            } else {
-                if (document.exitFullscreen) { document.exitFullscreen(); }
-                else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
-            }
-        }
+        document.querySelectorAll('.window').forEach(setupWindowManagerEvents);
+        updateTaskbarTray();
     </script>
 </body>
 </html>
