@@ -38,7 +38,7 @@
         .frame-header h2 { margin: 0; font-size: 1.3rem; color: #72db51; }
         .header-controls { display: flex; align-items: center; gap: 15px; }
 
-        /* Fullscreen state overrides managed safely via browser viewport binding */
+        /* Fullscreen operational bindings */
         .frame-card:fullscreen {
             width: 100vw !important; height: 100vh !important;
             max-width: 100vw !important; border: none !important; border-radius: 0px !important;
@@ -48,15 +48,9 @@
             max-width: 100vw !important; border: none !important; border-radius: 0px !important;
         }
 
-        /* Hide the header bar by sliding it upward when entering fullscreen */
-        .frame-card:fullscreen .frame-header {
-            position: absolute; transform: translateY(-100%); opacity: 0;
-        }
-        .frame-card:-webkit-full-screen .frame-header {
-            position: absolute; transform: translateY(-100%); opacity: 0;
-        }
+        .frame-card:fullscreen .frame-header { position: absolute; transform: translateY(-100%); opacity: 0; }
+        .frame-card:-webkit-full-screen .frame-header { position: absolute; transform: translateY(-100%); opacity: 0; }
 
-        /* Slide the header down cleanly when the user hovers within the top hotzone zone */
         .frame-card:fullscreen .frame-header:hover,
         .frame-card:fullscreen .frame-header-hotzone:hover + .frame-header {
             transform: translateY(0); opacity: 1;
@@ -66,7 +60,6 @@
             transform: translateY(0); opacity: 1;
         }
 
-        /* Invisible interactive hover zone at the top edge of the screen */
         .frame-header-hotzone {
             display: none; position: absolute; top: 0; left: 0;
             width: 100%; height: 25px; z-index: 999998;
@@ -85,11 +78,8 @@
         .game-wrapper { position: relative; width: 100%; padding-top: 56.25%; background-color: #000000; }
         .game-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
         
-        /* Auto scale container dimensions dynamically while fullscreen mode stays active */
-        .frame-card:fullscreen .game-wrapper { padding-top: 0; height: calc(100vh - 0px); width: 100vw; }
-        .frame-card:-webkit-full-screen .game-wrapper { padding-top: 0; height: calc(100vh - 0px); width: 100vw; }
-        .frame-card:fullscreen .game-wrapper iframe { height: 100vh; }
-        .frame-card:-webkit-full-screen .game-wrapper iframe { height: 100vh; }
+        .frame-card:fullscreen .game-wrapper { padding-top: 0; height: 100vh; width: 100vw; }
+        .frame-card:-webkit-full-screen .game-wrapper { padding-top: 0; height: 100vh; width: 100vw; }
 
         #iframe-splash {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -99,13 +89,13 @@
         #iframe-splash img { max-width: 75%; max-height: 75%; object-fit: contain; }
         .splash-hidden { opacity: 0 !important; pointer-events: none !important; }
         
-        .skin-panel-body { display: flex; flex-direction: row; width: 100%; height: 480px; background-color: #0b170c; }
-        @media (max-width: 768px) { .skin-panel-body { flex-direction: column; height: auto; } }
-        .viewer-container { flex: 1; height: 100%; min-height: 400px; display: flex; justify-content: center; align-items: center; position: relative; }
-        .guide-container { flex: 1; padding: 30px; display: flex; flex-direction: column; justify-content: center; background-color: #122414; border-left: 2px solid #2d5431; }
-        .guide-container h3 { margin-top: 0; color: #72db51; font-size: 1.4rem; }
-        .guide-container p { color: #d1f5c9; line-height: 1.5; }
-        .skin-upload-box { margin-top: 15px; background-color: #1a331c; padding: 15px; border-radius: 8px; border: 2px dashed #72db51; text-align: center; }
+        /* UNBLOCKED SKIN LIBRARY INTERFACE STYLES */
+        .skin-library-wrapper {
+            width: 100%; height: 600px; background-color: #0c180d;
+        }
+        .skin-library-wrapper iframe {
+            width: 100%; height: 100%; border: none;
+        }
         footer { text-align: center; padding: 20px; background-color: #122414; color: #639c67; font-size: 0.9rem; margin-top: 40px; border-top: 2px solid #2d5431; }
     </style>
 </head>
@@ -115,9 +105,8 @@
         <p>The Ultimate 1.12 Minecraft Web Hub</p>
     </header>
     <div class="content-container">
-        <!-- SECTION 1: Game Viewport Panel Wrapper -->
+        <!-- SECTION 1: Game Client Viewer Container -->
         <div class="frame-card" id="game-card">
-            <!-- Top hover detector boundary strip -->
             <div class="frame-header-hotzone"></div>
             <div class="frame-header">
                 <h2>🎮 Game Client Instance</h2>
@@ -133,26 +122,15 @@
                 <iframe id="game-frame" src="game.html" title="MelonClient Game View" allow="fullscreen"></iframe>
             </div>
         </div>
-        <!-- SECTION 2: Stable Embedded Skin preview Panel -->
+        <!-- SECTION 2: Fully Embedded, Unblocked Skin Finder Library -->
         <div class="frame-card">
             <div class="frame-header">
-                <h2>👕 3D Skin Preview Hub</h2>
-                <a href="https://minecraftskins.com" target="_blank" class="action-btn">🔍 Open Skindex Site ↗</a>
+                <h2>👕 Skin Finder & Downloader Library</h2>
+                <span style="color: #a2e88d; font-size: 0.85rem;">Search, select a skin, and download the file!</span>
             </div>
-            <div class="skin-panel-body">
-                <div class="viewer-container">
-                    <!-- Fully secure, embed-ready open source 3D WebGL preview engine (Fixes Refused Connection) -->
-                    <iframe style="width:100%; height:100%; border:none;" src="https://github.io" title="3D Skin Viewer"></iframe>
-                </div>
-                <div class="guide-container">
-                    <h3>Embedded Skin Testing Module</h3>
-                    <p>Skins from the catalog can be opened in a clean separate window via the link tracker button. Download the custom look PNG straight onto your desktop device storage, and test adjustments natively using the player options tab inside the game canvas dashboard above.</p>
-                    <div class="skin-upload-box">
-                        <label style="color:#a2e88d; font-size: 0.9rem;">
-                            Skins found can be uploaded directly inside the <strong>Game Client</strong> options panel!
-                        </label>
-                    </div>
-                </div>
+            <div class="skin-library-wrapper">
+                <!-- Connects straight to an open, embed-ready Minecraft Skin Database catalog -->
+                <iframe src="https://minecraftskinstealer.com" title="Skin Finder Engine" allow="download-without-user-activation"></iframe>
             </div>
         </div>
     </div>
@@ -167,7 +145,7 @@
         const loadStatus = document.getElementById('load-status');
         const gameCard = document.getElementById('game-card');
 
-        // Orchestrate the illusion timer loop natively upon asset download completion
+        // Handles the custom 5 second holding mask illusion
         gameFrame.addEventListener('load', function() {
             loadStatus.innerText = "Initializing System Options...";
             setTimeout(function() {
@@ -177,7 +155,7 @@
                     splashOverlay.classList.add('splash-hidden');
                     setTimeout(() => splashOverlay.remove(), 1000);
                 }
-            }, 5000); /* Exactly 5 seconds to mask the text notification logic screen */
+            }, 5000); 
         });
 
         // Advanced multi-browser engine compatibility layout for clean fullscreen switching
