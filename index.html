@@ -38,7 +38,7 @@
         .frame-header h2 { margin: 0; font-size: 1.3rem; color: #72db51; }
         .header-controls { display: flex; align-items: center; gap: 15px; }
 
-        /* Fullscreen operational bindings */
+        /* Fullscreen state structural modifiers */
         .frame-card:fullscreen {
             width: 100vw !important; height: 100vh !important;
             max-width: 100vw !important; border: none !important; border-radius: 0px !important;
@@ -89,14 +89,24 @@
         #iframe-splash img { max-width: 75%; max-height: 75%; object-fit: contain; }
         .splash-hidden { opacity: 0 !important; pointer-events: none !important; }
         
-        /* UNBLOCKED SKIN LIBRARY INTERFACE STYLES */
-        .skin-library-wrapper {
-            width: 100%; height: 600px; background-color: #0c180d;
+        /* UNBLOCKED NATIVE SKIN EXPLORER MODULE */
+        .skin-library-panel {
+            padding: 25px; background-color: #0c180d; display: flex; flex-direction: column; gap: 20px;
         }
-        .skin-library-wrapper iframe {
-            width: 100%; height: 100%; border: none;
+        .search-row { display: flex; gap: 10px; max-width: 500px; width: 100%; }
+        .search-input {
+            flex: 1; padding: 10px; border-radius: 6px; border: 2px solid #2d5431;
+            background-color: #122414; color: #ffffff; font-size: 1rem; outline: none;
         }
-        footer { text-align: center; padding: 20px; background-color: #122414; color: #639c67; font-size: 0.9rem; margin-top: 40px; border-top: 2px solid #2d5431; }
+        .search-input:focus { border-color: #72db51; }
+        .display-area {
+            display: flex; flex-wrap: wrap; gap: 25px; margin-top: 10px; justify-content: center;
+        }
+        .skin-preview-box {
+            background-color: #122414; padding: 15px; border-radius: 10px;
+            border: 2px solid #2d5431; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 12px; width: 160px;
+        }
+        .skin-preview-box img { width: 120px; height: auto; image-rendering: pixelated; }
     </style>
 </head>
 <body>
@@ -105,7 +115,7 @@
         <p>The Ultimate 1.12 Minecraft Web Hub</p>
     </header>
     <div class="content-container">
-        <!-- SECTION 1: Game Client Viewer Container -->
+        <!-- SECTION 1: Game Window Frame Wrapper -->
         <div class="frame-card" id="game-card">
             <div class="frame-header-hotzone"></div>
             <div class="frame-header">
@@ -122,21 +132,36 @@
                 <iframe id="game-frame" src="game.html" title="MelonClient Game View" allow="fullscreen"></iframe>
             </div>
         </div>
-        <!-- SECTION 2: Fully Embedded, Unblocked Skin Finder Library -->
+        <!-- SECTION 2: Completely Unblocked Skin Library -->
         <div class="frame-card">
             <div class="frame-header">
-                <h2>👕 Skin Finder & Downloader Library</h2>
-                <span style="color: #a2e88d; font-size: 0.85rem;">Search, select a skin, and download the file!</span>
+                <h2>👕 Native Skin Lookup Library</h2>
+                <span style="color: #a2e88d; font-size: 0.85rem;">Search premium players to save their skin files!</span>
             </div>
-            <div class="skin-library-wrapper">
-                <!-- Connects straight to an open, embed-ready Minecraft Skin Database catalog -->
-                <iframe src="https://minecraftskinstealer.com" title="Skin Finder Engine" allow="download-without-user-activation"></iframe>
+            <div class="skin-library-panel">
+                <div class="search-row">
+                    <input type="text" id="username-search" class="search-input" placeholder="Type Minecraft username (e.g., Notch)...">
+                    <button class="action-btn" onclick="lookupSkin()">Search</button>
+                </div>
+                <div class="display-area" id="library-display">
+                    <!-- Standard placeholder blocks displayed before searching -->
+                    <div class="skin-preview-box">
+                        <strong style="color:#72db51;">Steve Style</strong>
+                        <img src="https://mc-heads.net" alt="Steve Skin">
+                        <a href="https://mc-heads.net" target="_blank" class="action-btn" style="padding: 5px 10px; font-size: 0.75rem;">Download PNG</a>
+                    </div>
+                    <div class="skin-preview-box">
+                        <strong style="color:#72db51;">Alex Style</strong>
+                        <img src="https://mc-heads.net" alt="Alex Skin">
+                        <a href="https://mc-heads.net" target="_blank" class="action-btn" style="padding: 5px 10px; font-size: 0.75rem;">Download PNG</a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <footer>
-        <p>&copy; 2026 MelonClient | Powered by GitHub Pages</p>
+        <p>&copy; <layout>followupButton(query="""Add this milestone to my calendar""", label="""2026""", variant=FOLLOWUP_BUTTON_VARIANT_DATE_DROPDOWN)</layout> MelonClient | Powered by GitHub Pages</p>
     </footer>
 
     <script type="text/javascript">
@@ -145,7 +170,6 @@
         const loadStatus = document.getElementById('load-status');
         const gameCard = document.getElementById('game-card');
 
-        // Handles the custom 5 second holding mask illusion
         gameFrame.addEventListener('load', function() {
             loadStatus.innerText = "Initializing System Options...";
             setTimeout(function() {
@@ -158,7 +182,28 @@
             }, 5000); 
         });
 
-        // Advanced multi-browser engine compatibility layout for clean fullscreen switching
+        // Unblocked native API lookup mapping functionality
+        function lookupSkin() {
+            const nameInput = document.getElementById('username-search').value.trim();
+            const targetDisplay = document.getElementById('library-display');
+            
+            if(nameInput === "") return;
+            
+            // Reconstructs clean preview profile boxes programmatically using secure proxy links
+            targetDisplay.innerHTML = `
+                <div class="skin-preview-box">
+                    <strong style="color:#72db51;">Front View</strong>
+                    <img src="https://mc-heads.net{nameInput}/100" alt="Front Preview">
+                    <a href="https://mc-heads.net{nameInput}" target="_blank" class="action-btn" style="padding: 5px 10px; font-size: 0.75rem;">Download PNG</a>
+                </div>
+                <div class="skin-preview-box">
+                    <strong style="color:#72db51;">Back View</strong>
+                    <img src="https://mc-heads.net{nameInput}/100" alt="Back Preview">
+                    <a href="https://mc-heads.net{nameInput}" target="_blank" class="action-btn" style="padding: 5px 10px; font-size: 0.75rem;">Download PNG</a>
+                </div>
+            `;
+        }
+
         function toggleFullscreen() {
             if (!document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {  
                 if (gameCard.requestFullscreen) { gameCard.requestFullscreen(); }
