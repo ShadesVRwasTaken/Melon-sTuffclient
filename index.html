@@ -78,8 +78,10 @@
         .chat-container { display: flex; height: 100%; background: #0d160e; }
         .chat-sidebar { width: 220px; background: #122414; border-right: 2px solid var(--border-color); display: flex; flex-direction: column; overflow-y: auto; }
         .room-item { padding: 14px; font-size: 0.85rem; border-bottom: 1px solid rgba(114,219,81,0.1); cursor: pointer; transition: background 0.15s; }
-        .room-item:hover { background: rgba(114,219,81,0.1); color: var(--accent-color); }
-        .chat-main { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #080f09; padding: 25px; text-align: center; }
+        .room-item:hover, .room-item.active-room { background: rgba(114,219,81,0.15); color: var(--accent-color); font-weight: bold; }
+        .chat-main { flex: 1; display: flex; flex-direction: column; background: #080f09; }
+        .chat-messages { flex: 1; padding: 15px; overflow-y: auto; font-size: 0.9rem; display: flex; flex-direction: column; gap: 10px; }
+        .chat-input-area { padding: 10px; background: #122414; border-top: 1px solid var(--border-color); display: flex; gap: 8px; }
         
         .taskbar { position: absolute; bottom: 0; left: 0; width: 100vw; height: 45px; background-color: var(--panel-bg); border-top: 2px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; padding: 0 15px; box-sizing: border-box; z-index: 1000000; }
         .taskbar-left, .taskbar-right { display: flex; align-items: center; gap: 10px; height: 100%; }
@@ -179,9 +181,25 @@
         <div class="window-content app-padding"><div class="flex-btn-row"><button class="task-app-btn" style="background:var(--accent-color); color:black; font-weight:bold;" onclick="saveLocalNoteChanges()">💾 Save Note</button></div><textarea id="notebook-textarea-node" class="note-textarea" placeholder="Type text here..."></textarea></div>
         <div class="resize-handle"></div>
     </div>
-    <div class="window" id="element-window" style="top: 70px; left: 200px; width: 680px; height: 480px; display: none;">
+    <div class="window" id="element-window" style="top: 70px; left: 200px; width: 560px; height: 460px; display: none;">
         <div class="window-header"><span class="window-title">💬 Friends Network Messenger</span><div class="window-controls"><button class="win-btn win-min" onclick="minimizeWindow('element-window')"></button><button class="win-btn win-max" onclick="maximizeWindow('element-window')"></button><button class="win-btn win-close" onclick="closeWindow('element-window')"></button></div></div>
-        <div class="window-content" style="background: #000; margin:0; padding:0;"><iframe id="custom-element-iframe" src="https://vercel.app" style="width:100%; height:100%; border:none; margin:0; padding:0; filter: hue-rotate(65deg) brightness(0.9);" allow="autoplay; fullscreen; encrypted-media;"></iframe></div>
+        <div class="window-content" style="background: #080f09;">
+            <div class="chat-container">
+                <div class="chat-sidebar">
+                    <div style="padding: 10px; font-size: 0.8rem; font-weight: bold; color: var(--accent-color); border-bottom: 1px solid var(--border-color);">ACTIVE ROOMS</div>
+                    <div id="chat-rooms-list" style="flex: 1; overflow-y: auto;"></div>
+                </div>
+                <div class="chat-main" style="padding: 20px; display: flex; flex-direction: column; justify-content: flex-end; background:#050a05; box-sizing: border-box;">
+                    <div id="chat-messages-box" style="flex: 1; width: 100%; overflow-y: auto; margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px; font-size: 0.9rem;">
+                        <div style="color: #a2e88d; text-align: center; margin-top: auto; padding: 20px;">Select an active conversation channel to pull data history logs.</div>
+                    </div>
+                    <div style="width: 100%; display: flex; gap: 10px; box-sizing: border-box;">
+                        <input type="text" id="chat-text-input" class="browser-input" placeholder="Type a message here...">
+                        <button class="task-app-btn" style="background: var(--accent-color); color: #000; font-weight: bold;" onclick="sendNativeMatrixMessage()">Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="resize-handle"></div>
     </div>
     <div class="taskbar">
@@ -195,7 +213,7 @@
         const ctxMenu = document.getElementById('desktop-context-menu');
         const fileCtxMenu = document.getElementById('file-context-menu');
         
-        let windowZIndex = 10, selectedShortcutId = null, selectedFileNode = null, matrixActiveClientInstance = null;
+        let windowZIndex = 10, selectedShortcutId = null, selectedFileNode = null, matrixActiveClientInstance = null, activeRoomId = null;
         const initialPositions = {}, virtualFilesList = [];
         const GRID_X = 115, GRID_Y = 125;
         let activeMediaRecorder = null, recordedMediaChunks = [], cameraDeviceStream = null;
@@ -269,13 +287,54 @@
         }
         function initMatrixNotificationListeners() {
             if(!matrixActiveClientInstance) return;
+            matrixActiveClientInstance.startClient({ initialSyncLimit: 20 });
+            const listContainer = document.getElementById('chat-rooms-list');
+            
+            matrixActiveClientInstance.on("sync", function(state) {
+                if(state === "PREPARED" || state === "SYNCING") {
+                    const rooms = matrixActiveClientInstance.getRooms();
+                    if(rooms.length > 0 && listContainer) {
+                        listContainer.innerHTML = "";
+                        rooms.forEach(r => {
+                            const div = document.createElement('div'); div.className = "room-item"; div.innerText = r.name;
+                            div.onclick = () => {
+                                activeRoomId = r.roomId;
+                                document.querySelectorAll('.room-item').forEach(el => el.classList.remove('active-room'));
+                                div.classList.add('active-room');
+                                loadRoomTimeline(r);
+                            };
+                            listContainer.appendChild(div);
+                        });
+                    }
+                }
+            });
+
             matrixActiveClientInstance.on("Room.timeline", function(event, room, toStartOfTimeline) {
-                if (toStartOfTimeline || event.getType() !== "m.room.message" || event.getSender() === matrixActiveClientInstance.getUserId()) return;
-                spawnOSSystemToast(room.name || "Element Notification", event.getContent().body || "Sent a chat asset");
+                if (toStartOfTimeline || event.getType() !== "m.room.message") return;
+                if(event.getSender() !== matrixActiveClientInstance.getUserId()) {
+                    spawnOSSystemToast(room.name || "Element Message", `${event.sender ? event.sender.name : 'Friend'}: ${event.getContent().body}`);
+                }
+                if(activeRoomId === room.roomId) loadRoomTimeline(room);
             });
         }
 
-        function spawnOSSystemToast(title, msg) { const container = document.getElementById('os-toast-container'); const toast = document.createElement('div'); toast.className = 'os-toast'; toast.innerHTML = `<strong style="color:#72db51; font-size:0.85rem;">${title}</strong><span style="font-size:0.75rem; color:#fff;">${msg}</span>`; container.appendChild(toast); setTimeout(() => toast.remove(), 4500); }
+        function loadRoomTimeline(room) {
+            const box = document.getElementById('chat-messages-box'); if(!box) return; box.innerHTML = "";
+            room.timeline.slice(-25).forEach(ev => {
+                if(ev.getType() === "m.room.message") {
+                    const div = document.createElement('div'); div.style.padding = "4px 0";
+                    div.innerHTML = `<span style="color:#72db51; font-weight:bold;">${ev.sender ? ev.sender.name : ev.getSender()}:</span> <span style="color:#fff;">${ev.getContent().body}</span>`;
+                    box.appendChild(div);
+                }
+            });
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function sendNativeMatrixMessage() {
+            const input = document.getElementById('chat-text-input'); if(!activeRoomId || !input || input.value.trim() === "") return;
+            matrixActiveClientInstance.sendTextMessage(activeRoomId, input.value.trim()).then(() => { input.value = ""; loadRoomTimeline(matrixActiveClientInstance.getRoom(activeRoomId)); });
+        }
+
         function handleExternalOSUpload(input) { if(!input.files) return; Array.from(input.files).forEach(file => { const reader = new FileReader(); let type = file.type.startsWith("video/") ? "video" : "image"; reader.onload = (e) => { saveVirtualFile(file.name, e.target.result, type); }; reader.readAsDataURL(file); }); }
         function saveVirtualFile(name, src, type) { virtualFilesList.push({ name, src, type }); refreshExplorerGrids(); }
         
