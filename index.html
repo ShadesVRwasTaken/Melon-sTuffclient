@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MelonClient Hub</title>
     <style>
-        /* Global Portal Reset & Aesthetic */
+        /* Global Reset & Dark Theme */
         body {
             margin: 0;
             padding: 0;
@@ -15,7 +15,7 @@
             overflow-x: hidden;
         }
 
-        /* Top Header Styling */
+        /* Top Header Configuration */
         header {
             background-color: #122414;
             padding: 20px;
@@ -26,7 +26,7 @@
         header h1 {
             margin: 0;
             font-size: 2.5rem;
-            color: #72db51; /* Vibrant lime green logo accent */
+            color: #72db51; /* Lime green brand accent */
             text-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
 
@@ -36,7 +36,7 @@
             font-size: 1rem;
         }
 
-        /* Responsive Content Section Framework */
+        /* Dashboard Container */
         .content-container {
             display: flex;
             flex-direction: column;
@@ -47,7 +47,7 @@
             margin: 0 auto;
         }
 
-        /* Frame Card Containers */
+        /* Container Panels */
         .frame-card {
             width: 100%;
             max-width: 1024px;
@@ -73,11 +73,11 @@
             color: #72db51;
         }
 
-        /* Target Frame Embedding Layouts */
+        /* 16:9 Widescreen Iframe Scaler */
         .game-wrapper {
             position: relative;
             width: 100%;
-            padding-top: 56.25%; /* Force crisp 16:9 widescreen gameplay dimension ratio */
+            padding-top: 56.25%; 
         }
 
         .game-wrapper iframe {
@@ -89,21 +89,21 @@
             border: none;
         }
 
-        /* Direct splash layer placed above the game canvas window */
+        /* Custom MelonClient Splash Overlay */
         #iframe-splash {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: #72db51; /* Custom lime green background */
+            background-color: #72db51; /* Exact matching brand lime green */
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 10; /* Sits directly on top of the iframe element */
+            z-index: 10; /* Keeps it directly over the iframe canvas */
             opacity: 1;
-            transition: opacity 1.0s ease-in-out; /* Smooth 1-second fade out [1] */
-            pointer-events: all; /* Blocks clicking the game during loading */
+            transition: opacity 1.0s ease-in-out; /* Smooth 1 second transition fade out */
+            pointer-events: all; /* Disables clicking the interface elements underneath */
         }
 
         #iframe-splash img {
@@ -112,22 +112,13 @@
             object-fit: contain;
         }
 
-        /* Status text badge design */
-        #load-status {
-            background-color: #2a4d2e;
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 0.8rem;
-            color: #a2e88d;
-            transition: all 0.3s ease;
-        }
-
-        /* Applied by the script timer to trigger the fade effect */
+        /* Fade-out tracking class used by the script timer */
         .splash-hidden {
             opacity: 0 !important;
             pointer-events: none !important;
         }
 
+        /* Skindex Panel Setup */
         .skin-wrapper {
             width: 100%;
             height: 650px;
@@ -153,7 +144,6 @@
 </head>
 <body>
 
-    <!-- Main Navigation Header -->
     <header>
         <h1>MELONCLIENT</h1>
         <p>The Ultimate 1.12 Minecraft Web Hub</p>
@@ -161,23 +151,22 @@
 
     <div class="content-container">
 
-        <!-- SECTION 1: Active Game Client Viewport -->
+        <!-- SECTION 1: Game Viewport Frame Container -->
         <div class="frame-card">
             <div class="frame-header">
                 <h2>🎮 Game Client Instance</h2>
-                <span id="load-status">Connecting to Assets...</span>
+                <span id="load-status" style="color:#a2e88d; font-size:0.85rem;">Connecting...</span>
             </div>
             <div class="game-wrapper">
-                <!-- Direct splash layer placed above the game canvas window -->
+                <!-- Splash overlay locks here, safely covering the Eaglercraft file initialization screen -->
                 <div id="iframe-splash">
                     <img src="MelonClient.png" alt="MelonClient Logo">
                 </div>
-                <!-- Listen for the native iframe asset 'load' trigger directly -->
-                <iframe id="game-client-frame" src="game.html" title="MelonClient Game View"></iframe>
+                <iframe id="game-frame" src="game.html" title="MelonClient Game View"></iframe>
             </div>
         </div>
 
-        <!-- SECTION 2: Skindex Explorer Viewport -->
+        <!-- SECTION 2: Skin Finder Iframe Section -->
         <div class="frame-card">
             <div class="frame-header">
                 <h2>👕 Skin Browser</h2>
@@ -191,32 +180,31 @@
     </div>
 
     <footer>
-        <p>&copy; 2026 MelonClient | Built via GitHub Pages</p>
+        <p>&copy; 2026 MelonClient | Powered by GitHub Pages</p>
     </footer>
 
     <script type="text/javascript">
-        const clientFrame = document.getElementById('game-client-frame');
-        const statusBadge = document.getElementById('load-status');
-        const splashLayer = document.getElementById('iframe-splash');
+        const gameFrame = document.getElementById('game-frame');
+        const splashOverlay = document.getElementById('iframe-splash');
+        const loadStatus = document.getElementById('load-status');
 
-        // This listener waits until game.html is completely pulled by the client browser
-        clientFrame.addEventListener('load', function() {
-            statusBadge.innerText = "Game Loaded! Initializing Engine (5s)...";
-            statusBadge.style.color = "#72db51";
-
-            // Starts the exact 5-second countdown timer ONLY after the iframe completes loading
+        // Activates runtime checks right when the iframe asset components complete loading
+        gameFrame.addEventListener('load', function() {
+            loadStatus.innerText = "Initializing System Options...";
+            
+            // Fires an exact 5-second hold loop to cover the client warning layout
             setTimeout(function() {
-                if (splashLayer) {
-                    statusBadge.innerText = "Running";
-                    statusBadge.style.backgroundColor = "#1a331c";
+                if (splashOverlay) {
+                    loadStatus.innerText = "Running";
+                    loadStatus.style.color = "#72db51";
                     
-                    // Activates the 1-second CSS transparency animation sequence [1]
-                    splashLayer.classList.add('splash-hidden');
+                    // Triggers the 1-second animation fade out
+                    splashOverlay.classList.add('splash-hidden');
                     
-                    // Deletes the screen from memory 1 second later once the fade finishes
-                    setTimeout(() => splashLayer.remove(), 1000);
+                    // Safely cleans up the overlay from active DOM tree layout after opacity hits 0
+                    setTimeout(() => splashOverlay.remove(), 1000);
                 }
-            }, 5000); /* 5000 milliseconds = 5 seconds */
+            }, 5000); /* 5000 milliseconds = Exactly 5 seconds */
         });
     </script>
 
