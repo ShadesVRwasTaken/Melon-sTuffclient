@@ -57,13 +57,11 @@
         }
         .window-title { font-size: 0.9rem; font-weight: bold; color: var(--accent-color); display: flex; align-items: center; gap: 6px; }
         .window-controls { display: flex; gap: 8px; align-items: center; }
-        .win-btn {
-            width: 14px; height: 14px; border-radius: 50%; border: none; cursor: pointer; display: inline-block;
-        }
+        .win-btn { width: 14px; height: 14px; border-radius: 50%; border: none; cursor: pointer; display: inline-block; }
         .win-close { background-color: #ff5f56; }
         .win-min { background-color: #ffbd2e; }
         .win-max { background-color: #27c93f; }
-        .window-content { flex: 1; position: relative; width: 100%; height: 100%; background: #000; }
+        .window-content { flex: 1; position: relative; width: 100%; height: 100%; background: #000; overflow: auto; }
         .window-content iframe { width: 100%; height: 100%; border: none; display: block; }
 
         /* FULLSCREEN SYSTEM OVERRIDES FOR THE GAME WINDOW */
@@ -91,7 +89,7 @@
         
         /* WEB ENGINE ENVIRONMENT INTERFACE */
         .browser-bar { background-color: rgba(0,0,0,0.1); padding: 8px 12px; display: flex; gap: 10px; border-bottom: 2px solid var(--border-color); }
-        .browser-input { flex: 1; padding: 6px 12px; border-radius: 5px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); }
+        .browser-input { flex: 1; padding: 6px 12px; border-radius: 5px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); font-size: 0.9rem; }
         .resize-handle { position: absolute; width: 14px; height: 14px; right: 0; bottom: 0; cursor: se-resize; z-index: 1000; }
 
         #iframe-splash {
@@ -117,7 +115,7 @@
     </div>
 
     <!-- WINDOW 1: Core Eaglercraft Minecraft Environment Container -->
-    <div class="window" id="game-window" style="top: 50px; left: 150px; width: 720px; height: 460px;">
+    <div class="window" id="game-window" style="top: 50px; left: 60px; width: 720px; height: 460px;">
         <div class="window-header">
             <span class="window-title">🎮 MelonClient Workspace <span id="load-status" style="color:var(--accent-hover); font-size:0.75rem; margin-left:10px;">Connecting...</span></span>
             <div class="window-controls">
@@ -126,7 +124,7 @@
                 <button class="win-btn win-close" onclick="closeWindow('game-window')"></button>
             </div>
         </div>
-        <div class="window-content">
+        <div class="window-content" style="background:#000;">
             <div id="iframe-splash">
                 <img src="MelonClient.png" alt="MelonClient Logo">
             </div>
@@ -134,10 +132,10 @@
         </div>
         <div class="resize-handle"></div>
     </div>
-    <!-- WINDOW 2: Core Google Hub App Sub-System Environment Layer -->
-    <div class="window" id="google-window" style="top: 80px; left: 220px; width: 640px; height: 440px; display: none;">
+    <!-- WINDOW 2: Google Browser App Shell Frame Container -->
+    <div class="window" id="google-window" style="top: 80px; left: 140px; width: 740px; height: 480px; display: none;">
         <div class="window-header">
-            <span class="window-title">🌐 Google Browser Engine</span>
+            <span class="window-title">🌐 Google Browser Engine (Unblocked)</span>
             <div class="window-controls">
                 <button class="win-btn win-min" onclick="minimizeWindow('google-window')"></button>
                 <button class="win-btn win-max" onclick="maximizeWindow('google-window')"></button>
@@ -145,14 +143,13 @@
             </div>
         </div>
         <div class="browser-bar">
-            <input type="text" id="browser-url-bar" class="browser-input" placeholder="Type a search query or a website address here..." value="Minecraft skins">
+            <input type="text" id="browser-url-bar" class="browser-input" placeholder="Type a search query or paste an unblocked website address..." value="Minecraft skins">
             <button class="task-app-btn" onclick="navigateBrowser()">Go</button>
             <button class="task-app-btn" style="background:var(--accent-color); color:black; font-weight:bold;" onclick="installCurrentWebpage()">Install App</button>
         </div>
-        <div class="window-content" style="background: #111411; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 25px; box-sizing: border-box;">
-            <span style="font-size: 3rem; margin-bottom: 10px;">🌐</span>
-            <h3 style="margin: 0 0 10px 0; color: var(--accent-color);">Google External Engine Mode</h3>
-            <p style="margin: 0; font-size: 0.85rem; color: #a2e88d; max-width: 400px; line-height: 1.5;">Type your search query or URL into the top search bar above and click <strong>Go</strong> to open an unblocked Google window tab safely!</p>
+        <!-- Securely mounts Google Programmable Layout natively to display queries inside the frame container -->
+        <div class="window-content" id="browser-target-root" style="background:#ffffff; color:#000000; padding:15px;">
+            <iframe id="custom-browser-iframe" src="https://google.com:/search?igu=1&q=Minecraft+skins" style="width:100%; height:100%; background:#fff;"></iframe>
         </div>
         <div class="resize-handle"></div>
     </div>
@@ -203,35 +200,45 @@
 
         function toggleSystemSettings() { document.body.classList.toggle('light-theme'); }
 
-        // Secure search array mapping queries directly onto Google's web tabs
+        // Corrects URL formatting maps to process raw strings securely inside the container viewport
         function navigateBrowser() {
-            let url = document.getElementById('browser-url-bar').value.trim();
-            if(url === "") return;
-            
-            if (!url.includes('.') || url.includes(' ')) {
-                url = 'https://google.com' + encodeURIComponent(url);
-            } else if (!url.startsWith('http://') && !url.startsWith('https://')) {
-                url = 'https://' + url;
+            const inputVal = document.getElementById('browser-url-bar').value.trim();
+            const browserFrame = document.getElementById('custom-browser-iframe');
+            if(inputVal === "") return;
+
+            let finalUrl = "";
+            // Determines if string is a term query or direct web asset URL path link
+            if (inputVal.includes('.') && !inputVal.includes(' ')) {
+                let cleanUrl = inputVal;
+                if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) cleanUrl = 'https://' + cleanUrl;
+                finalUrl = cleanUrl;
+            } else {
+                // Feeds safe browser parameter proxies into the visual iframe container panel
+                finalUrl = "https://google.com:/search?igu=1&q=" + encodeURIComponent(inputVal);
             }
             
-            window.open(url, '_blank');
+            if(browserFrame) {
+                browserFrame.src = finalUrl;
+            } else {
+                // If customized runtime pages are deployed, it resets content trees cleanly
+                document.getElementById('browser-target-root').innerHTML = `<iframe id="custom-browser-iframe" src="${finalUrl}" style="width:100%; height:100%; background:#fff;"></iframe>`;
+            }
         }
 
-        // Programmatically compiles launcher modules onto your desktop workspace matrix
         function installCurrentWebpage() {
             const currentUrl = document.getElementById('browser-url-bar').value.trim();
+            const grid = document.getElementById('desktop-icons');
             if(currentUrl === "") return;
-            
-            let targetUrl = currentUrl;
-            if (!targetUrl.includes('.') || targetUrl.includes(' ')) {
-                targetUrl = 'https://google.com' + encodeURIComponent(targetUrl);
-            } else if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
-                targetUrl = 'https://' + targetUrl;
+
+            let appUrl = currentUrl;
+            if (!appUrl.includes('.') || appUrl.includes(' ')) {
+                appUrl = "https://google.com:/search?igu=1&q=" + encodeURIComponent(appUrl);
+            } else if (!appUrl.startsWith('http://') && !appUrl.startsWith('https://')) {
+                appUrl = 'https://' + appUrl;
             }
 
-            const grid = document.getElementById('desktop-icons');
-            let cleanLabel = currentUrl;
-            if(cleanLabel.length > 15) cleanLabel = cleanLabel.substring(0, 12) + '...';
+            let cleanLabel = currentUrl.replace(/^(https?:\/\/)?(www\.)?/, '').split('/')[0];
+            if(cleanLabel.length > 14) cleanLabel = cleanLabel.substring(0, 11) + '...';
             let safeId = "app-" + Math.floor(Math.random() * 100000);
 
             const shortcut = document.createElement('div');
@@ -241,7 +248,7 @@
             const newWin = document.createElement('div');
             newWin.className = 'window';
             newWin.id = safeId;
-            newWin.style = "top:100px; left:250px; width:540px; height:380px; display:none;";
+            newWin.style = "top:110px; left:220px; width:600px; height:400px; display:none;";
             newWin.innerHTML = `
                 <div class="window-header">
                     <span class="window-title">🚀 ${cleanLabel}</span>
@@ -251,10 +258,7 @@
                         <button class="win-btn win-close" onclick="closeWindow('${safeId}')"></button>
                     </div>
                 </div>
-                <div class="window-content" style="background:#111; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:20px;">
-                    <p style="color:var(--accent-color); font-weight:bold; font-size:1.1rem; margin-bottom:15px;">Application: ${cleanLabel}</p>
-                    <button class="task-app-btn" style="background:var(--accent-color); color:black; font-weight:bold; padding:10px 20px;" onclick="window.open('${targetUrl}', '_blank')">Launch App ↗</button>
-                </div>
+                <div class="window-content" style="background:#fff;"><iframe src="${appUrl}"></iframe></div>
                 <div class="resize-handle"></div>
             `;
 
@@ -298,7 +302,7 @@
             tray.innerHTML = '<span class="system-metric" style="font-weight:bold; letter-spacing:1px; cursor:pointer;" onclick="toggleSystemSettings()">🍉 MelonOS</span>';
             document.querySelectorAll('.window').forEach(win => {
                 if(win.style.display !== 'none') {
-                    const label = win.querySelector('.window-title').innerText.split('\n');
+                    const label = win.querySelector('.window-title').innerText.split('\n')[0];
                     const tab = document.createElement('button');
                     tab.className = 'task-app-btn active-tab';
                     tab.innerText = label;
