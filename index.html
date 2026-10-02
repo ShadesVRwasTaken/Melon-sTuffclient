@@ -29,20 +29,30 @@
             transition: background 0.3s ease;
         }
 
-        /* DESKTOP APP SHORTCUTS GRID */
-        .desktop-grid {
-            position: absolute; top: 20px; left: 20px; bottom: 60px; right: 20px;
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-            grid-template-rows: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 20px; grid-auto-flow: column; z-index: 1;
+        /* ABSOLUTE PLACEMENT DRAG DESKTOP WORKSPACE */
+        .desktop-area {
+            position: absolute; top: 0; left: 0; width: 100vw; height: calc(100vh - 45px); z-index: 1;
         }
         .desktop-shortcut {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            gap: 8px; cursor: pointer; padding: 10px; border-radius: 8px; transition: background 0.2s;
+            position: absolute; width: 90px; height: 95px; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; gap: 8px; cursor: pointer;
+            padding: 5px; border-radius: 8px; transition: background 0.1s ease; box-sizing: border-box;
         }
         .desktop-shortcut:hover { background-color: rgba(114, 219, 81, 0.15); }
-        .shortcut-icon { font-size: 2.2rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
-        .shortcut-label { font-size: 0.8rem; text-align: center; font-weight: 500; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); color: var(--text-color); }
+        .shortcut-icon { font-size: 2.2rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); pointer-events: none; }
+        .shortcut-label { font-size: 0.8rem; text-align: center; font-weight: 500; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); color: var(--text-color); pointer-events: none; word-break: break-all; }
+
+        /* CHROME STYLE CONTEXT MENU */
+        .context-menu {
+            position: absolute; background-color: var(--panel-bg); border: 1px solid var(--border-color);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5); border-radius: 6px; padding: 5px 0; z-index: 20000000;
+            display: none; min-width: 140px;
+        }
+        .context-item {
+            padding: 8px 15px; font-size: 0.85rem; color: var(--text-color); cursor: pointer; display: flex; align-items: center; gap: 8px;
+        }
+        .context-item:hover { background-color: var(--accent-color); color: #122414; font-weight: bold; }
+        .context-item.disabled { color: #555 !important; cursor: not-allowed; background: transparent !important; }
 
         /* WINDOW LAYER SYSTEM DEFINITIONS */
         .window {
@@ -102,20 +112,26 @@
 </head>
 <body>
 
-    <!-- Desktop Icons Environment Workspace Layout -->
-    <div class="desktop-grid" id="desktop-icons">
-        <div class="desktop-shortcut" onclick="openWindow('game-window')">
+    <!-- Context Options Dropdown Menu Element Template -->
+    <div id="desktop-context-menu" class="context-menu">
+        <div class="context-item" id="menu-open-action">🟢 Open App</div>
+        <div class="context-item" id="menu-delete-action" style="color:#ff5f56;">🗑 Delete App</div>
+    </div>
+
+    <!-- Active Apps Desktop Desktop Shortcut Grid Area Container -->
+    <div class="desktop-area" id="desktop-space">
+        <div class="desktop-shortcut" id="shortcut-game-window" data-window="game-window" style="top: 20px; left: 20px;">
             <span class="shortcut-icon">🎮</span>
             <span class="shortcut-label">MelonClient</span>
         </div>
-        <div class="desktop-shortcut" onclick="openWindow('google-window')">
+        <div class="desktop-shortcut" id="shortcut-google-window" data-window="google-window" style="top: 130px; left: 20px;">
             <span class="shortcut-icon">🌐</span>
             <span class="shortcut-label">Google</span>
         </div>
     </div>
 
     <!-- WINDOW 1: Core Eaglercraft Minecraft Environment Container -->
-    <div class="window" id="game-window" style="top: 50px; left: 60px; width: 720px; height: 460px;">
+    <div class="window" id="game-window" style="top: 50px; left: 150px; width: 720px; height: 460px;">
         <div class="window-header">
             <span class="window-title">🎮 MelonClient Workspace <span id="load-status" style="color:var(--accent-hover); font-size:0.75rem; margin-left:10px;">Connecting...</span></span>
             <div class="window-controls">
@@ -133,9 +149,9 @@
         <div class="resize-handle"></div>
     </div>
     <!-- WINDOW 2: Google Browser App Shell Frame Container -->
-    <div class="window" id="google-window" style="top: 80px; left: 140px; width: 740px; height: 480px; display: none;">
+    <div class="window" id="google-window" style="top: 80px; left: 240px; width: 740px; height: 480px; display: none;">
         <div class="window-header">
-            <span class="window-title">🌐 Google Browser Engine (Unblocked)</span>
+            <span class="window-title">🌐 Google Browser Engine (Unblocked Matrix)</span>
             <div class="window-controls">
                 <button class="win-btn win-min" onclick="minimizeWindow('google-window')"></button>
                 <button class="win-btn win-max" onclick="maximizeWindow('google-window')"></button>
@@ -143,13 +159,12 @@
             </div>
         </div>
         <div class="browser-bar">
-            <input type="text" id="browser-url-bar" class="browser-input" placeholder="Type a search query or paste an unblocked website address..." value="Minecraft skins">
+            <input type="text" id="browser-url-bar" class="browser-input" placeholder="Type query or address (e.g., youtube)..." value="youtube">
             <button class="task-app-btn" onclick="navigateBrowser()">Go</button>
             <button class="task-app-btn" style="background:var(--accent-color); color:black; font-weight:bold;" onclick="installCurrentWebpage()">Install App</button>
         </div>
-        <!-- Securely mounts Google Programmable Layout natively to display queries inside the frame container -->
-        <div class="window-content" id="browser-target-root" style="background:#ffffff; color:#000000; padding:15px;">
-            <iframe id="custom-browser-iframe" src="https://google.com:/search?igu=1&q=Minecraft+skins" style="width:100%; height:100%; background:#fff;"></iframe>
+        <div class="window-content" id="browser-target-root" style="background:#ffffff; margin:0; padding:0; height:calc(100% - 39px); width:100%; overflow:hidden;">
+            <iframe id="custom-browser-iframe" src="https://googleusercontent.com" style="width:100%; height:100%; border:none; margin:0; padding:0;"></iframe>
         </div>
         <div class="resize-handle"></div>
     </div>
@@ -168,8 +183,10 @@
         const gameFrame = document.getElementById('game-frame');
         const splashOverlay = document.getElementById('iframe-splash');
         const loadStatus = document.getElementById('load-status');
+        const ctxMenu = document.getElementById('desktop-context-menu');
         
         let windowZIndex = 10;
+        let selectedShortcutId = null;
         const initialPositions = {};
 
         gameFrame.addEventListener('load', function() {
@@ -200,49 +217,49 @@
 
         function toggleSystemSettings() { document.body.classList.toggle('light-theme'); }
 
-        // Corrects URL formatting maps to process raw strings securely inside the container viewport
         function navigateBrowser() {
-            const inputVal = document.getElementById('browser-url-bar').value.trim();
+            const inputVal = document.getElementById('browser-url-bar').value.trim().toLowerCase();
             const browserFrame = document.getElementById('custom-browser-iframe');
             if(inputVal === "") return;
-
             let finalUrl = "";
-            // Determines if string is a term query or direct web asset URL path link
-            if (inputVal.includes('.') && !inputVal.includes(' ')) {
+            if (inputVal === "youtube" || inputVal === "youtube.com") {
+                finalUrl = "https://youtube.com";
+            } else if (inputVal === "google" || inputVal === "google.com") {
+                finalUrl = "https://googleusercontent.com";
+            } else if (inputVal.includes('.') && !inputVal.includes(' ')) {
                 let cleanUrl = inputVal;
                 if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) cleanUrl = 'https://' + cleanUrl;
-                finalUrl = cleanUrl;
+                finalUrl = "https://googleusercontent.com" + encodeURIComponent(cleanUrl);
             } else {
-                // Feeds safe browser parameter proxies into the visual iframe container panel
-                finalUrl = "https://google.com:/search?igu=1&q=" + encodeURIComponent(inputVal);
+                finalUrl = "https://googleusercontent.com%3Fq%3D" + encodeURIComponent(inputVal);
             }
-            
-            if(browserFrame) {
-                browserFrame.src = finalUrl;
-            } else {
-                // If customized runtime pages are deployed, it resets content trees cleanly
-                document.getElementById('browser-target-root').innerHTML = `<iframe id="custom-browser-iframe" src="${finalUrl}" style="width:100%; height:100%; background:#fff;"></iframe>`;
-            }
+            if(browserFrame) browserFrame.src = finalUrl;
         }
 
         function installCurrentWebpage() {
             const currentUrl = document.getElementById('browser-url-bar').value.trim();
-            const grid = document.getElementById('desktop-icons');
+            const space = document.getElementById('desktop-space');
             if(currentUrl === "") return;
 
-            let appUrl = currentUrl;
-            if (!appUrl.includes('.') || appUrl.includes(' ')) {
-                appUrl = "https://google.com:/search?igu=1&q=" + encodeURIComponent(appUrl);
-            } else if (!appUrl.startsWith('http://') && !appUrl.startsWith('https://')) {
-                appUrl = 'https://' + appUrl;
+            let appUrl = currentUrl.toLowerCase();
+            if (appUrl === "youtube" || appUrl === "youtube.com") {
+                appUrl = "https://youtube.com";
+            } else if (!appUrl.includes('.') || appUrl.includes(' ')) {
+                appUrl = "https://googleusercontent.com%3Fq%3D" + encodeURIComponent(appUrl);
+            } else {
+                if (!appUrl.startsWith('http://') && !appUrl.startsWith('https://')) appUrl = 'https://' + appUrl;
+                appUrl = "https://googleusercontent.com" + encodeURIComponent(appUrl);
             }
 
-            let cleanLabel = currentUrl.replace(/^(https?:\/\/)?(www\.)?/, '').split('/')[0];
-            if(cleanLabel.length > 14) cleanLabel = cleanLabel.substring(0, 11) + '...';
+            let cleanLabel = currentUrl.replace(/^(https?:\/\/)?(www\.)?/, '').split('/');
             let safeId = "app-" + Math.floor(Math.random() * 100000);
 
             const shortcut = document.createElement('div');
             shortcut.className = 'desktop-shortcut';
+            shortcut.id = "shortcut-" + safeId;
+            shortcut.setAttribute('data-window', safeId);
+            shortcut.style.top = "100px";
+            shortcut.style.left = "140px";
             shortcut.innerHTML = `<span class="shortcut-icon">🚀</span><span class="shortcut-label">${cleanLabel}</span>`;
             
             const newWin = document.createElement('div');
@@ -258,29 +275,82 @@
                         <button class="win-btn win-close" onclick="closeWindow('${safeId}')"></button>
                     </div>
                 </div>
-                <div class="window-content" style="background:#fff;"><iframe src="${appUrl}"></iframe></div>
+                <div class="window-content" style="background:#fff; margin:0; padding:0;"><iframe src="${appUrl}" style="width:100%; height:100%; border:none;"></iframe></div>
                 <div class="resize-handle"></div>
             `;
 
             document.body.appendChild(newWin);
-            grid.appendChild(shortcut);
+            space.appendChild(shortcut);
             setupWindowManagerEvents(newWin);
-            
-            shortcut.onclick = () => openWindow(safeId);
+            setupShortcutEvents(shortcut);
+        }
+        function setupShortcutEvents(sc) {
+            sc.addEventListener('dblclick', () => openWindow(sc.getAttribute('data-window')));
+
+            sc.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                selectedShortcutId = sc.id;
+                
+                ctxMenu.style.top = e.clientY + 'px';
+                ctxMenu.style.left = e.clientX + 'px';
+                ctxMenu.style.display = 'block';
+
+                const targetWin = sc.getAttribute('data-window');
+                const delBtn = document.getElementById('menu-delete-action');
+                
+                if(targetWin === 'game-window' || targetWin === 'google-window') {
+                    delBtn.classList.add('disabled');
+                    delBtn.style.opacity = "0.4";
+                } else {
+                    delBtn.classList.remove('disabled');
+                    delBtn.style.opacity = "1";
+                }
+            });
+
+            sc.addEventListener('mousedown', (e) => {
+                if(e.button !== 0) return;
+                let startX = e.clientX, startY = e.clientY;
+                let origLeft = sc.offsetLeft, origTop = sc.offsetTop;
+
+                function dragIcon(ev) {
+                    sc.style.left = (origLeft + ev.clientX - startX) + 'px';
+                    sc.style.top = (origTop + ev.clientY - startY) + 'px';
+                }
+                function dropIcon() {
+                    document.removeEventListener('mousemove', dragIcon);
+                    document.removeEventListener('mouseup', dropIcon);
+                }
+                document.addEventListener('mousemove', dragIcon);
+                document.addEventListener('mouseup', dropIcon);
+            });
         }
 
-        function openWindow(id) {
-            const win = document.getElementById(id);
-            win.style.display = 'flex';
-            windowZIndex++;
-            win.style.zIndex = windowZIndex;
-            updateTaskbarTray();
-        }
+        document.getElementById('menu-open-action').onclick = () => {
+            if(selectedShortcutId) {
+                const sc = document.getElementById(selectedShortcutId);
+                openWindow(sc.getAttribute('data-window'));
+            }
+        };
+
+        document.getElementById('menu-delete-action').onclick = () => {
+            if(selectedShortcutId) {
+                const sc = document.getElementById(selectedShortcutId);
+                const targetWin = sc.getAttribute('data-window');
+                if(targetWin === 'game-window' || targetWin === 'google-window') return;
+
+                document.getElementById(targetWin).remove();
+                sc.remove();
+                ctxMenu.style.display = 'none';
+                updateTaskbarTray();
+            }
+        };
+
+        document.addEventListener('click', () => ctxMenu.style.display = 'none');
+
+        function openWindow(id) { const win = document.getElementById(id); win.style.display = 'flex'; windowZIndex++; win.style.zIndex = windowZIndex; updateTaskbarTray(); }
         function closeWindow(id) { document.getElementById(id).style.display = 'none'; updateTaskbarTray(); }
-        function minimizeWindow(id) {
-            const win = document.getElementById(id);
-            win.style.display = win.style.display === 'none' ? 'flex' : 'none';
-        }
+        function minimizeWindow(id) { const win = document.getElementById(id); win.style.display = win.style.display === 'none' ? 'flex' : 'none'; }
         function maximizeWindow(id) {
             const win = document.getElementById(id);
             if(id === 'game-window') {
@@ -302,7 +372,7 @@
             tray.innerHTML = '<span class="system-metric" style="font-weight:bold; letter-spacing:1px; cursor:pointer;" onclick="toggleSystemSettings()">🍉 MelonOS</span>';
             document.querySelectorAll('.window').forEach(win => {
                 if(win.style.display !== 'none') {
-                    const label = win.querySelector('.window-title').innerText.split('\n')[0];
+                    const label = win.querySelector('.window-title').innerText.split('\n');
                     const tab = document.createElement('button');
                     tab.className = 'task-app-btn active-tab';
                     tab.innerText = label;
@@ -334,6 +404,7 @@
         }
 
         document.querySelectorAll('.window').forEach(setupWindowManagerEvents);
+        document.querySelectorAll('.desktop-shortcut').forEach(setupShortcutEvents);
         updateTaskbarTray();
     </script>
 </body>
