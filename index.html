@@ -73,11 +73,40 @@
             color: #72db51;
         }
 
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* Interactive Action Buttons */
+        .action-btn {
+            background-color: #72db51;
+            color: #122414;
+            border: none;
+            padding: 8px 16px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        .action-btn:hover {
+            background-color: #a2e88d;
+            transform: translateY(-1px);
+        }
+
         /* 16:9 Widescreen Iframe Scaler */
         .game-wrapper {
             position: relative;
             width: 100%;
             padding-top: 56.25%; 
+            background-color: #000000;
         }
 
         .game-wrapper iframe {
@@ -96,14 +125,14 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: #72db51; /* Exact matching brand lime green */
+            background-color: #72db51; 
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 10; /* Keeps it directly over the iframe canvas */
+            z-index: 10; 
             opacity: 1;
-            transition: opacity 1.0s ease-in-out; /* Smooth 1 second transition fade out */
-            pointer-events: all; /* Disables clicking the interface elements underneath */
+            transition: opacity 1.0s ease-in-out; 
+            pointer-events: all; 
         }
 
         #iframe-splash img {
@@ -112,23 +141,63 @@
             object-fit: contain;
         }
 
-        /* Fade-out tracking class used by the script timer */
         .splash-hidden {
             opacity: 0 !important;
             pointer-events: none !important;
         }
 
-        /* Skindex Panel Setup */
-        .skin-wrapper {
+        /* Skin Panel Layout Split (Viewer Left, Guide Right) */
+        .skin-panel-body {
+            display: flex;
+            flex-direction: row;
             width: 100%;
-            height: 650px;
+            height: 480px;
+            background-color: #0b170c;
         }
 
-        .skin-wrapper iframe {
+        @media (max-width: 768px) {
+            .skin-panel-body {
+                flex-direction: column;
+                height: auto;
+            }
+        }
+
+        .viewer-container {
+            flex: 1;
+            height: 100%;
+            min-height: 400px;
+        }
+
+        .viewer-container iframe {
             width: 100%;
             height: 100%;
             border: none;
-            background-color: #ffffff;
+        }
+
+        .guide-container {
+            flex: 1;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background-color: #122414;
+            border-left: 2px solid #2d5431;
+        }
+
+        .guide-container h3 {
+            margin-top: 0;
+            color: #72db51;
+            font-size: 1.4rem;
+        }
+
+        .guide-container ol {
+            padding-left: 20px;
+            line-height: 1.6;
+            color: #d1f5c9;
+        }
+
+        .guide-container li {
+            margin-bottom: 12px;
         }
 
         footer {
@@ -152,28 +221,43 @@
     <div class="content-container">
 
         <!-- SECTION 1: Game Viewport Frame Container -->
-        <div class="frame-card">
+        <div class="frame-card" id="game-card">
             <div class="frame-header">
                 <h2>🎮 Game Client Instance</h2>
-                <span id="load-status" style="color:#a2e88d; font-size:0.85rem;">Connecting...</span>
+                <div class="header-controls">
+                    <span id="load-status" style="color:#a2e88d; font-size:0.85rem;">Connecting...</span>
+                    <button class="action-btn" onclick="toggleFullscreen()">🖵 Fullscreen</button>
+                </div>
             </div>
             <div class="game-wrapper">
-                <!-- Splash overlay locks here, safely covering the Eaglercraft file initialization screen -->
                 <div id="iframe-splash">
                     <img src="MelonClient.png" alt="MelonClient Logo">
                 </div>
-                <iframe id="game-frame" src="game.html" title="MelonClient Game View"></iframe>
+                <iframe id="game-frame" src="game.html" title="MelonClient Game View" allow="fullscreen"></iframe>
             </div>
         </div>
 
-        <!-- SECTION 2: Skin Finder Iframe Section -->
+        <!-- SECTION 2: Fixed Skin Browser Dashboard -->
         <div class="frame-card">
             <div class="frame-header">
-                <h2>👕 Skin Browser</h2>
-                <span style="color: #a2e88d; font-size: 0.85rem;">Find a skin, download it, and upload in-game!</span>
+                <h2>👕 3D Skin Preview Hub</h2>
+                <!-- Safely routes the player directly out to Skindex without connection errors -->
+                <a href="https://minecraftskins.com" target="_blank" class="action-btn">🔍 Open Skindex Website ↗</a>
             </div>
-            <div class="skin-wrapper">
-                <iframe src="https://minecraftskins.com" title="Skindex Skin Browser"></iframe>
+            <div class="skin-panel-body">
+                <!-- Safe, responsive 3D WebGL skin viewer engine wrapper -->
+                <div class="viewer-container">
+                    <iframe src="https://github.io" title="Interactive 3D Skin Viewer"></iframe>
+                </div>
+                <!-- Step-by-Step Instructions Panel -->
+                <div class="guide-container">
+                    <h3>How to Import Custom Skins:</h3>
+                    <ol>
+                        <li>Click the green <strong>Open Skindex Website</strong> button above to browse styles.</li>
+                        <li>Find a skin you like and click the <strong>Download</strong> button on their site to save the PNG image.</li>
+                        <li>Return to the game frame up top, open the client options menu, and upload your downloaded PNG to apply it!</li>
+                    </ol>
+                </div>
             </div>
         </div>
 
@@ -187,25 +271,36 @@
         const gameFrame = document.getElementById('game-frame');
         const splashOverlay = document.getElementById('iframe-splash');
         const loadStatus = document.getElementById('load-status');
+        const gameCard = document.getElementById('game-card');
 
-        // Activates runtime checks right when the iframe asset components complete loading
+        // Handles loading screens seamlessly after iframe loads
         gameFrame.addEventListener('load', function() {
             loadStatus.innerText = "Initializing System Options...";
             
-            // Fires an exact 5-second hold loop to cover the client warning layout
             setTimeout(function() {
                 if (splashOverlay) {
                     loadStatus.innerText = "Running";
                     loadStatus.style.color = "#72db51";
-                    
-                    // Triggers the 1-second animation fade out
                     splashOverlay.classList.add('splash-hidden');
-                    
-                    // Safely cleans up the overlay from active DOM tree layout after opacity hits 0
                     setTimeout(() => splashOverlay.remove(), 1000);
                 }
-            }, 5000); /* 5000 milliseconds = Exactly 5 seconds */
+            }, 5000); /* 5 seconds */
         });
+
+        // Fullscreen API toggles
+        function toggleFullscreen() {
+            if (!document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {  
+                if (gameCard.requestFullscreen) { gameCard.requestFullscreen(); }
+                else if (gameCard.msRequestFullscreen) { gameCard.msRequestFullscreen(); }
+                else if (gameCard.mozRequestFullScreen) { gameCard.mozRequestFullScreen(); }
+                else if (gameCard.webkitRequestFullscreen) { gameCard.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT); }
+            } else {
+                if (document.exitFullscreen) { document.exitFullscreen(); }
+                else if (document.msExitFullscreen) { document.msExitFullscreen(); }
+                else if (document.mozCancelFullScreen) { document.mozCancelFullScreen(); }
+                else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
+            }
+        }
     </script>
 
 </body>
