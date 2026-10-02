@@ -7,220 +7,74 @@
     <style>
         /* Global Reset & Dark Theme */
         body {
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #1a331c; /* Deep dark melon green */
-            color: #ffffff;
-            overflow-x: hidden;
+            background-color: #1a331c; color: #ffffff; overflow-x: hidden;
         }
-
-        /* Top Header Configuration */
         header {
-            background-color: #122414;
-            padding: 20px;
-            text-align: center;
-            border-bottom: 4px solid #72db51;
+            background-color: #122414; padding: 20px;
+            text-align: center; border-bottom: 4px solid #72db51;
         }
-
-        header h1 {
-            margin: 0;
-            font-size: 2.5rem;
-            color: #72db51; /* Lime green brand accent */
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-        }
-
-        header p {
-            margin: 5px 0 0 0;
-            color: #a2e88d;
-            font-size: 1rem;
-        }
-
-        /* Dashboard Container */
+        header h1 { margin: 0; font-size: 2.5rem; color: #72db51; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        header p { margin: 5px 0 0 0; color: #a2e88d; font-size: 1rem; }
         .content-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 40px;
-            padding: 30px 10px;
-            max-width: 1200px;
-            margin: 0 auto;
+            display: flex; flex-direction: column; align-items: center;
+            gap: 40px; padding: 30px 10px; max-width: 1200px; margin: 0 auto;
         }
-
-        /* Container Panels */
         .frame-card {
-            width: 100%;
-            max-width: 1024px;
-            background-color: #122414;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-            border: 2px solid #2d5431;
-            overflow: hidden;
+            width: 100%; max-width: 1024px; background-color: #122414;
+            border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            border: 2px solid #2d5431; overflow: hidden; position: relative;
         }
-
         .frame-header {
-            background-color: #1a331c;
-            padding: 15px 20px;
-            border-bottom: 2px solid #2d5431;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            background-color: #1a331c; padding: 15px 20px; border-bottom: 2px solid #2d5431;
+            display: flex; justify-content: space-between; align-items: center;
+            transition: transform 0.3s ease, opacity 0.3s ease;
         }
-
-        .frame-header h2 {
-            margin: 0;
-            font-size: 1.3rem;
-            color: #72db51;
+        .frame-header h2 { margin: 0; font-size: 1.3rem; color: #72db51; }
+        .header-controls { display: flex; align-items: center; gap: 15px; }
+        
+        /* SMART FULLSCREEN AUTOMATION */
+        :fullscreen #game-card .frame-header {
+            position: absolute; top: 0; left: 0; width: 100%; z-index: 100;
+            box-sizing: border-box; transform: translateY(-100%); opacity: 0;
         }
-
-        .header-controls {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        /* Interactive Action Buttons */
+        :fullscreen #game-card:hover .frame-header { transform: translateY(0); opacity: 1; }
+        
         .action-btn {
-            background-color: #72db51;
-            color: #122414;
-            border: none;
-            padding: 8px 16px;
-            font-weight: bold;
-            font-size: 0.85rem;
-            border-radius: 6px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            transition: all 0.2s ease-in-out;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            background-color: #72db51; color: #122414; border: none; padding: 8px 16px;
+            font-weight: bold; font-size: 0.85rem; border-radius: 6px; cursor: pointer;
+            text-decoration: none; display: inline-flex; align-items: center;
+            transition: all 0.2s ease-in-out; box-shadow: 0 2px 6px rgba(0,0,0,0.2);
         }
-
-        .action-btn:hover {
-            background-color: #a2e88d;
-            transform: translateY(-1px);
-        }
-
-        /* 16:9 Widescreen Iframe Scaler */
-        .game-wrapper {
-            position: relative;
-            width: 100%;
-            padding-top: 56.25%; 
-            background-color: #000000;
-        }
-
-        .game-wrapper iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-
-        /* Custom MelonClient Splash Overlay */
+        .action-btn:hover { background-color: #a2e88d; transform: translateY(-1px); }
+        .game-wrapper { position: relative; width: 100%; padding-top: 56.25%; background-color: #000000; }
+        .game-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+        :fullscreen .game-wrapper { padding-top: 0; height: 100vh; width: 100vw; }
+        
         #iframe-splash {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #72db51; 
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 10; 
-            opacity: 1;
-            transition: opacity 1.0s ease-in-out; 
-            pointer-events: all; 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #72db51; display: flex; justify-content: center;
+            align-items: center; z-index: 10; opacity: 1; transition: opacity 1.0s ease-in-out; pointer-events: all;
         }
-
-        #iframe-splash img {
-            max-width: 75%;
-            max-height: 75%;
-            object-fit: contain;
-        }
-
-        .splash-hidden {
-            opacity: 0 !important;
-            pointer-events: none !important;
-        }
-
-        /* Skin Panel Layout Split (Viewer Left, Guide Right) */
-        .skin-panel-body {
-            display: flex;
-            flex-direction: row;
-            width: 100%;
-            height: 480px;
-            background-color: #0b170c;
-        }
-
-        @media (max-width: 768px) {
-            .skin-panel-body {
-                flex-direction: column;
-                height: auto;
-            }
-        }
-
-        .viewer-container {
-            flex: 1;
-            height: 100%;
-            min-height: 400px;
-        }
-
-        .viewer-container iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-
-        .guide-container {
-            flex: 1;
-            padding: 30px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            background-color: #122414;
-            border-left: 2px solid #2d5431;
-        }
-
-        .guide-container h3 {
-            margin-top: 0;
-            color: #72db51;
-            font-size: 1.4rem;
-        }
-
-        .guide-container ol {
-            padding-left: 20px;
-            line-height: 1.6;
-            color: #d1f5c9;
-        }
-
-        .guide-container li {
-            margin-bottom: 12px;
-        }
-
-        footer {
-            text-align: center;
-            padding: 20px;
-            background-color: #122414;
-            color: #639c67;
-            font-size: 0.9rem;
-            margin-top: 40px;
-            border-top: 2px solid #2d5431;
-        }
+        #iframe-splash img { max-width: 75%; max-height: 75%; object-fit: contain; }
+        .splash-hidden { opacity: 0 !important; pointer-events: none !important; }
+        .skin-panel-body { display: flex; flex-direction: row; width: 100%; height: 480px; background-color: #0b170c; }
+        @media (max-width: 768px) { .skin-panel-body { flex-direction: column; height: auto; } }
+        .viewer-container { flex: 1; height: 100%; min-height: 400px; display: flex; justify-content: center; align-items: center; position: relative; }
+        .guide-container { flex: 1; padding: 30px; display: flex; flex-direction: column; justify-content: center; background-color: #122414; border-left: 2px solid #2d5431; }
+        .guide-container h3 { margin-top: 0; color: #72db51; font-size: 1.4rem; }
+        .guide-container p { color: #d1f5c9; line-height: 1.5; }
+        .skin-upload-box { margin-top: 15px; background-color: #1a331c; padding: 15px; border-radius: 8px; border: 2px dashed #72db51; text-align: center; }
+        footer { text-align: center; padding: 20px; background-color: #122414; color: #639c67; font-size: 0.9rem; margin-top: 40px; border-top: 2px solid #2d5431; }
     </style>
 </head>
 <body>
-
     <header>
         <h1>MELONCLIENT</h1>
         <p>The Ultimate 1.12 Minecraft Web Hub</p>
     </header>
-
     <div class="content-container">
-
-        <!-- SECTION 1: Game Viewport Frame Container -->
         <div class="frame-card" id="game-card">
             <div class="frame-header">
                 <h2>🎮 Game Client Instance</h2>
@@ -236,35 +90,30 @@
                 <iframe id="game-frame" src="game.html" title="MelonClient Game View" allow="fullscreen"></iframe>
             </div>
         </div>
-
-        <!-- SECTION 2: Fixed Skin Browser Dashboard -->
         <div class="frame-card">
             <div class="frame-header">
-                <h2>👕 3D Skin Preview Hub</h2>
-                <!-- Safely routes the player directly out to Skindex without connection errors -->
-                <a href="https://minecraftskins.com" target="_blank" class="action-btn">🔍 Open Skindex Website ↗</a>
+                <h2>👕 3D Skin Finder & Tester</h2>
+                <a href="https://minecraftskins.com" target="_blank" class="action-btn">🔍 Open Skindex Site ↗</a>
             </div>
             <div class="skin-panel-body">
-                <!-- Safe, responsive 3D WebGL skin viewer engine wrapper -->
                 <div class="viewer-container">
-                    <iframe src="https://github.io" title="Interactive 3D Skin Viewer"></iframe>
+                    <iframe style="width:100%; height:100%; border:none;" src="https://minerender.org" title="Skin Viewer"></iframe>
                 </div>
-                <!-- Step-by-Step Instructions Panel -->
                 <div class="guide-container">
-                    <h3>How to Import Custom Skins:</h3>
-                    <ol>
-                        <li>Click the green <strong>Open Skindex Website</strong> button above to browse styles.</li>
-                        <li>Find a skin you like and click the <strong>Download</strong> button on their site to save the PNG image.</li>
-                        <li>Return to the game frame up top, open the client options menu, and upload your downloaded PNG to apply it!</li>
-                    </ol>
+                    <h3>Embedded Skin Testing Module</h3>
+                    <p>Since external catalog pages protect their connections, use the direct link tool above to pick out look profiles from Skindex, download the skin texture file to your computer, and test it inside the live engine.</p>
+                    <div class="skin-upload-box">
+                        <label style="color:#a2e88d; font-size: 0.9rem;">
+                            Skins found can be uploaded directly inside the <strong>Game Client</strong> options panel!
+                        </label>
+                    </div>
                 </div>
             </div>
         </div>
-
     </div>
 
     <footer>
-        <p>&copy; 2026 MelonClient | Powered by GitHub Pages</p>
+        <p>&copy; <layout>followupButton(query="""Add this milestone to my calendar""", label="""2026""", variant=FOLLOWUP_BUTTON_VARIANT_DATE_DROPDOWN)</layout> MelonClient | Powered by GitHub Pages</p>
     </footer>
 
     <script type="text/javascript">
@@ -273,10 +122,8 @@
         const loadStatus = document.getElementById('load-status');
         const gameCard = document.getElementById('game-card');
 
-        // Handles loading screens seamlessly after iframe loads
         gameFrame.addEventListener('load', function() {
             loadStatus.innerText = "Initializing System Options...";
-            
             setTimeout(function() {
                 if (splashOverlay) {
                     loadStatus.innerText = "Running";
@@ -284,10 +131,9 @@
                     splashOverlay.classList.add('splash-hidden');
                     setTimeout(() => splashOverlay.remove(), 1000);
                 }
-            }, 5000); /* 5 seconds */
+            }, 5000);
         });
 
-        // Fullscreen API toggles
         function toggleFullscreen() {
             if (!document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {  
                 if (gameCard.requestFullscreen) { gameCard.requestFullscreen(); }
@@ -302,6 +148,5 @@
             }
         }
     </script>
-
 </body>
 </html>
