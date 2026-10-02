@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MelonOS Dashboard</title>
+    <title>MelonOS Ecosystem</title>
+    <!-- Injects the official Matrix Protocol Client Engine SDK natively -->
+    <script src="https://cloudflare.com"></script>
     <style>
-        /* Global OS Framework Theme Settings */
         :root {
             --bg-color: #162a18;
             --panel-bg: #122414;
@@ -28,7 +29,23 @@
             overflow: hidden; width: 100vw; height: 100vh; position: relative; user-select: none;
             transition: background 0.3s ease;
         }
-        .desktop-area { position: absolute; top: 0; left: 0; width: 100vw; height: calc(100vh - 45px); z-index: 1; }
+
+        /* ABSOLUTE MATRIX AUTHENTICATION LOCK OVERLAY */
+        #matrix-auth-lock-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: radial-gradient(circle, #1a331c 0%, #090f0a 100%);
+            z-index: 2147483647; display: flex; justify-content: center; align-items: center;
+        }
+        .auth-card {
+            background: var(--panel-bg); border: 2px solid var(--accent-color);
+            padding: 30px; border-radius: 12px; width: 340px; box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+            text-align: center;
+        }
+        .auth-input {
+            width: 100%; padding: 10px; margin: 10px 0; border-radius: 6px;
+            border: 1px solid var(--border-color); background: var(--bg-color); color: #fff; box-sizing: border-box;
+        }
+        .desktop-area { position: absolute; top: 0; left: 0; width: 100vw; height: calc(100vh - 45px); z-index: 1; display: none; }
         .desktop-shortcut {
             position: absolute; width: 100px; height: 105px; display: flex; flex-direction: column;
             align-items: center; justify-content: center; gap: 8px; cursor: pointer;
@@ -41,9 +58,8 @@
         .context-menu { position: absolute; background-color: var(--panel-bg); border: 1px solid var(--border-color); box-shadow: 0 5px 15px rgba(0,0,0,0.5); border-radius: 6px; padding: 5px 0; z-index: 20000000; display: none; min-width: 140px; }
         .context-item { padding: 8px 15px; font-size: 0.85rem; color: var(--text-color); cursor: pointer; display: flex; align-items: center; gap: 8px; }
         .context-item:hover { background-color: var(--accent-color); color: #122414; font-weight: bold; }
-        .context-item.disabled { color: #555 !important; cursor: not-allowed; background: transparent !important; }
         
-        .window { position: absolute; background-color: var(--panel-bg); border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 2px solid var(--border-color); overflow: hidden; display: flex; flex-direction: column; min-width: 320px; min-height: 200px; z-index: 5; }
+        .window { position: absolute; background-color: var(--panel-bg); border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 2px solid var(--border-color); overflow: hidden; display: none; flex-direction: column; min-width: 320px; min-height: 200px; z-index: 5; }
         .window-header { background-color: rgba(0,0,0,0.15); padding: 10px 15px; border-bottom: 2px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; cursor: move; }
         .window-title { font-size: 0.9rem; font-weight: bold; color: var(--accent-color); display: flex; align-items: center; gap: 6px; }
         .window-controls { display: flex; gap: 8px; align-items: center; }
@@ -56,30 +72,32 @@
         .app-padding { padding: 15px; box-sizing: border-box; height: 100%; width: 100%; background: #111411; }
         .flex-btn-row { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
         .media-preview-box { width: 100%; height: calc(100% - 60px); background: #000; border-radius: 6px; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; }
-        .media-preview-box video { width: 100%; height: 100%; object-fit: contain; }
-        
         .grid-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; padding: 5px; }
         .grid-item-card { background: #1a331c; border: 1px solid var(--border-color); border-radius: 6px; padding: 10px; text-align: center; cursor: pointer; position: relative; }
-        .grid-item-card:hover { border-color: var(--accent-color); }
-        .grid-item-card img, .grid-item-card video { max-width: 100%; max-height: 80px; object-fit: contain; border-radius: 4px; }
+        .grid-item-card img { max-width: 100%; max-height: 80px; object-fit: contain; }
         .grid-item-label { font-size: 0.75rem; margin-top: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #fff; }
-        
         .note-textarea { width: 100%; height: calc(100% - 60px); background: #050a05; color: #72db51; border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; box-sizing: border-box; font-family: monospace; font-size: 1rem; resize: none; outline: none; }
+        
+        /* TASKBAR PROFILE OVERRIDES */
+        .user-profile-badge { display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 3px 8px; border-radius: 5px; transition: background 0.2s; }
+        .user-profile-badge:hover { background: rgba(114,219,81,0.15); }
+        .user-avatar-node { width: 26px; height: 26px; border-radius: 50%; background: #72db51; object-fit: cover; border: 1px solid var(--border-color); }
+        
+        /* USER SYSTEM OPTIONS FLYOUT POPUP */
+        #user-flyout-panel { position: absolute; bottom: 50px; left: 15px; background: var(--panel-bg); border: 2px solid var(--border-color); border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); width: 180px; display: none; flex-direction: column; z-index: 20000005; padding: 5px 0; }
+        .flyout-item { padding: 10px 15px; font-size: 0.85rem; color: #fff; cursor: pointer; }
+        .flyout-item:hover { background: var(--accent-color); color: #122414; font-weight: bold; }
+
+        /* REAL-TIME OS NOTIFICATION TOAST ELEMENT */
+        #os-toast-container { position: fixed; bottom: 60px; right: 20px; z-index: 2147483645; display: flex; flex-direction: column; gap: 10px; }
+        .os-toast { background: #122414; border-left: 5px solid #72db51; border-top: 1px solid #2d5431; border-right: 1px solid #2d5431; border-bottom: 1px solid #2d5431; padding: 12px 20px; border-radius: 4px; box-shadow: 0 5px 15px rgba(0,0,0,0.4); display: flex; flex-direction: column; gap: 4px; min-width: 240px; animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
         #game-window:fullscreen { width: 100vw !important; height: 100vh !important; border: none !important; border-radius: 0 !important; z-index: 2147483647 !important; }
         #game-window:fullscreen .window-header { display: none !important; }
-        #game-window:fullscreen .window-content { height: 100vh !important; }
         #game-window:-webkit-full-screen { width: 100vw !important; height: 100vh !important; border: none !important; border-radius: 0 !important; z-index: 2147483647 !important; }
         #game-window:-webkit-full-screen .window-header { display: none !important; }
-        #game-window:-webkit-full-screen .window-content { height: 100vh !important; }
-        
-        /* OS OVERLAY MEDIA VIEWERS STYLES */
-        #os-media-viewer-modal {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 80%; height: 80%; max-width: 800px; background: #122414; border: 2px solid #72db51;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.8); border-radius: 12px; z-index: 2147483640;
-            display: none; flex-direction: column; overflow: hidden;
-        }
-        
+        #os-media-viewer-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; height: 80%; max-width: 800px; background: #122414; border: 2px solid #72db51; box-shadow: 0 20px 50px rgba(0,0,0,0.8); border-radius: 12px; z-index: 2147483640; display: none; flex-direction: column; overflow: hidden; }
         .taskbar { position: absolute; bottom: 0; left: 0; width: 100vw; height: 45px; background-color: var(--panel-bg); border-top: 2px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; padding: 0 15px; box-sizing: border-box; z-index: 1000000; }
         .taskbar-left, .taskbar-right { display: flex; align-items: center; gap: 15px; }
         .task-app-btn { background-color: rgba(114, 219, 81, 0.1); border: 1px solid var(--border-color); color: var(--text-color); padding: 5px 12px; border-radius: 5px; cursor: pointer; font-size: 0.8rem; }
@@ -94,12 +112,33 @@
     </style>
 </head>
 <body>
+
+    <!-- ABSOLUTE MATRIX PROTOCOL GATEWAY INITIAL LOGIN LAYER -->
+    <div id="matrix-auth-lock-overlay">
+        <div class="auth-card">
+            <h2 style="color:var(--accent-color); margin: 0 0 10px 0; font-size: 1.5rem;">🍉 MelonOS Initializer</h2>
+            <p style="color:#a2e88d; font-size:0.8rem; margin-bottom: 20px;">Please authenticate via your decentralized Matrix / Element account credentials to initialize the workspace shell parameters.</p>
+            <input type="text" id="matrix-homeserver-node" class="auth-input" value="https://matrix.org" placeholder="Homeserver URL">
+            <input type="text" id="matrix-username-node" class="auth-input" placeholder="Matrix Username">
+            <input type="password" id="matrix-password-node" class="auth-input" placeholder="Matrix Password">
+            <button class="task-app-btn" style="background:var(--accent-color); color:black; font-weight:bold; width:100%; padding:10px; margin-top:10px;" onclick="authenticateMatrixSession()">Unlock MelonOS Shell</button>
+        </div>
+    </div>
+
+    <!-- USER CONTROLS SELECTION REGISTRATION FLYOUT -->
+    <div id="user-flyout-panel">
+        <div class="flyout-item" onclick="openWindow('element-window')">💬 Open Friends (Element)</div>
+        <div class="flyout-item" style="color:#ff5f56; border-top:1px solid var(--border-color);" onclick="terminateOSSession()">🚪 Logout System</div>
+    </div>
+
+    <!-- LOCAL OS TOAST NOTIFICATION CONTAINER ZONE -->
+    <div id="os-toast-container"></div>
+
     <div id="desktop-context-menu" class="context-menu">
         <div class="context-item" id="menu-open-action">🟢 Open App</div>
         <div class="context-item" id="menu-delete-action" style="color:#ff5f56;">🗑 Delete App</div>
     </div>
 
-    <!-- INTERNAL OS COMPACT MODAL VIEWER SYSTEM -->
     <div id="os-media-viewer-modal">
         <div class="window-header" style="background:#1a331c;">
             <span class="window-title" id="os-media-viewer-title">Media Viewer</span>
@@ -108,7 +147,7 @@
         <div id="os-media-viewer-content" style="flex:1; background:#000; display:flex; justify-content:center; align-items:center; padding:10px;"></div>
     </div>
 
-    <!-- Widened Grid Placement Shortcuts Map Layout -->
+    <!-- Active Apps Desktop Desktop Shortcut Grid Area Container -->
     <div class="desktop-area" id="desktop-space">
         <div class="desktop-shortcut" id="shortcut-game-window" data-window="game-window" style="top: 20px; left: 20px;">
             <span class="shortcut-icon">🎮</span>
@@ -148,13 +187,12 @@
             <div id="iframe-splash">
                 <img src="MelonClient.png" alt="MelonClient Logo">
             </div>
-            <!-- Client frame target link array track configurations -->
             <iframe id="game-frame" src="game.html" title="MelonClient Sandbox"></iframe>
         </div>
         <div class="resize-handle"></div>
     </div>
 
-    <div class="window" id="google-window" style="top: 80px; left: 300px; width: 640px; height: 440px; display: none;">
+    <div class="window" id="google-window" style="top: 80px; left: 300px; width: 640px; height: 440px;">
         <div class="window-header">
             <span class="window-title">🌐 Google Browser Engine</span>
             <div class="window-controls">
@@ -174,7 +212,7 @@
         <div class="resize-handle"></div>
     </div>
 
-    <div class="window" id="camera-window" style="top: 120px; left: 320px; width: 500px; height: 400px; display: none;">
+    <div class="window" id="camera-window" style="top: 120px; left: 320px; width: 500px; height: 400px;">
         <div class="window-header">
             <span class="window-title">📷 Camera Studio</span>
             <div class="window-controls">
@@ -195,7 +233,7 @@
         </div>
         <div class="resize-handle"></div>
     </div>
-    <div class="window" id="gallery-window" style="top: 150px; left: 350px; width: 480px; height: 360px; display: none;">
+    <div class="window" id="gallery-window" style="top: 150px; left: 350px; width: 480px; height: 360px;">
         <div class="window-header">
             <span class="window-title">🖼️ Media Gallery Player</span>
             <div class="window-controls">
@@ -208,7 +246,7 @@
         <div class="resize-handle"></div>
     </div>
 
-    <div class="window" id="files-window" style="top: 180px; left: 380px; width: 460px; height: 360px; display: none;">
+    <div class="window" id="files-window" style="top: 180px; left: 380px; width: 460px; height: 360px;">
         <div class="window-header">
             <span class="window-title">📁 File Explorer Workspace</span>
             <div class="window-controls">
@@ -218,19 +256,13 @@
             </div>
         </div>
         <div class="window-content app-padding">
-            <div class="flex-btn-row">
-                <!-- Direct Hardware Drive Upload Interface Element Hook -->
-                <label class="task-app-btn" style="background:var(--accent-color); color:#000; font-weight:bold; cursor:pointer;">
-                    📤 Upload Files to OS
-                    <input type="file" id="os-file-uploader-node" style="display:none;" multiple onchange="handleExternalOSUpload(this)">
-                </label>
-            </div>
+            <div class="flex-btn-row"><label class="task-app-btn" style="background:var(--accent-color); color:#000; font-weight:bold; cursor:pointer;">📤 Upload Files to OS<input type="file" id="os-file-uploader-node" style="display:none;" multiple onchange="handleExternalOSUpload(this)"></label></div>
             <div class="grid-list" id="files-grid-target"></div>
         </div>
         <div class="resize-handle"></div>
     </div>
 
-    <div class="window" id="notebook-window" style="top: 210px; left: 410px; width: 440px; height: 340px; display: none;">
+    <div class="window" id="notebook-window" style="top: 210px; left: 410px; width: 440px; height: 340px;">
         <div class="window-header">
             <span class="window-title">📝 NotePad Text Studio</span>
             <div class="window-controls">
@@ -246,22 +278,43 @@
         <div class="resize-handle"></div>
     </div>
 
+    <!-- WINDOW 7: Re-Skinned Element Chat Engine Client Frame Container -->
+    <div class="window" id="element-window" style="top: 70px; left: 200px; width: 400px; height: 500px;">
+        <div class="window-header">
+            <span class="window-title">💬 Element Chat Client</span>
+            <div class="window-controls">
+                <button class="win-btn win-min" onclick="minimizeWindow('element-window')"></button>
+                <button class="win-btn win-max" onclick="maximizeWindow('element-window')"></button>
+                <button class="win-btn win-close" onclick="closeWindow('element-window')"></button>
+            </div>
+        </div>
+        <!-- Securely channels Element web client instance through the layout view -->
+        <div class="window-content" style="background:#111;">
+            <iframe id="element-iframe-target" src="https://element.io" style="width:100%; height:100%; filter: hue-rotate(60deg) brightness(0.95);"></iframe>
+        </div>
+        <div class="resize-handle"></div>
+    </div>
+
     <div class="taskbar">
         <div class="taskbar-left" id="active-tabs-tray">
-            <span class="system-metric" style="font-weight:bold; letter-spacing:1px; cursor:pointer;" onclick="toggleSystemSettings()">🍉 MelonOS</span>
+            <!-- Dynamic Element profile user node flyout switch badge -->
+            <div class="user-profile-badge" onclick="toggleUserOSFlyout(event)">
+                <img id="user-taskbar-avatar" class="user-avatar-node" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" alt="Avatar">
+                <span id="user-taskbar-name" class="system-metric" style="font-weight:bold;">Loading Profile...</span>
+            </div>
         </div>
         <div class="taskbar-right">
             <div class="system-metric" id="sys-battery">🔋 Batt: 100%</div>
             <div class="system-metric" id="sys-clock">00:00:00 PM</div>
         </div>
     </div>
-        <script type="text/javascript">
+    <script type="text/javascript">
         const gameFrame = document.getElementById('game-frame');
         const splashOverlay = document.getElementById('iframe-splash');
         const loadStatus = document.getElementById('load-status');
         const ctxMenu = document.getElementById('desktop-context-menu');
         
-        let windowZIndex = 10, selectedShortcutId = null;
+        let windowZIndex = 10, selectedShortcutId = null, matrixActiveClientInstance = null;
         const initialPositions = {}, virtualFilesList = [];
         const GRID_X = 115, GRID_Y = 125;
         let activeMediaRecorder = null, recordedMediaChunks = [], cameraDeviceStream = null;
@@ -275,6 +328,41 @@
         setInterval(updateClock, 1000); updateClock();
         if(navigator.getBattery) { navigator.getBattery().then(bat => { const updateBatt = () => document.getElementById('sys-battery').innerText = `🔋 Batt: ${Math.round(bat.level * 100)}%`; updateBatt(); bat.addEventListener('levelchange', updateBatt); }); }
         function toggleSystemSettings() { document.body.classList.toggle('light-theme'); }
+
+        // CORE MATRIX AUTHENTICATION BOOT ENGINE PIPELINE
+        function authenticateMatrixSession() {
+            const hsUrl = document.getElementById('matrix-homeserver-node').value.trim();
+            const username = document.getElementById('matrix-username-node').value.trim();
+            const password = document.getElementById('matrix-password-node').value.trim();
+
+            if(!username || !password) { alert("Error: User entry credentials fields cannot be empty!"); return; }
+
+            // Spawns the decentralized matrix framework context natively
+            matrixActiveClientInstance = matrixcs.createClient({ baseUrl: hsUrl });
+            
+            matrixActiveClientInstance.login("m.login.password", { user: username, password: password })
+            .then(res => {
+                // Completely dismisses authorization shield and unlocks system rendering trees
+                document.getElementById('matrix-auth-lock-overlay').style.display = "none";
+                document.querySelectorAll('.desktop-area').forEach(el => el.style.display = "block");
+                
+                // Triggers structural profile queries straight from matrix sync states
+                initializeMatrixProfileStats(res.user_id);
+                initMatrixNotificationListeners();
+            })
+            .catch(err => alert("Matrix Connection Failed: " + err.message));
+        }
+
+        function initializeMatrixProfileStats(userId) {
+            matrixActiveClientInstance.getProfileInfo(userId).then(profile => {
+                document.getElementById('user-taskbar-name').innerText = profile.displayname || userId;
+                if(profile.avatar_url) {
+                    // Translates protocol internal media pointers to open public HTTP asset channels
+                    let httpAvatar = matrixActiveClientInstance.mxcUrlToHttp(profile.avatar_url, 32, 32, "crop");
+                    document.getElementById('user-taskbar-avatar').src = httpAvatar;
+                }
+            });
+        }
 
         function startCameraBus() {
             navigator.mediaDevices.getUserMedia({ video: true, audio: document.getElementById('hardware-audio-toggle').checked })
@@ -313,15 +401,42 @@
                 scrRecorder.start();
             });
         }
-        // FILE UPLOADER ENGINE WITH COMPACT MODAL VIEWER INTERACTIVE ELEMENTS
+        // REGISTERS EXPLICIT WEB TOAST ALERTS FROM REAL-TIME CHAT TIMELINES
+        function initMatrixNotificationListeners() {
+            matrixActiveClientInstance.startClient({ initialSyncLimit: 1 });
+            
+            matrixActiveClientInstance.on("Room.timeline", function(event, room, toStartOfTimeline) {
+                if (toStartOfTimeline) return; 
+                if (event.getType() !== "m.room.message") return; 
+                if (event.getSender() === matrixActiveClientInstance.getUserId()) return;
+
+                // Spawns message notifications on the fly inside the desktop dashboard shell
+                spawnOSSystemToast(room.name || "Matrix Friend", event.getContent().body || "Sent a media track file");
+            });
+
+            // VoIP Inbound call signaling trigger event hook mapping
+            matrixActiveClientInstance.on("Call.incoming", function(call) {
+                spawnOSSystemToast("⚠️ Incoming VoIP Matrix Call", "From room target session: " + call.roomId);
+            });
+        }
+
+        function spawnOSSystemToast(title, msg) {
+            const container = document.getElementById('os-toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'os-toast';
+            toast.innerHTML = `<strong style="color:#72db51; font-size:0.85rem;">${title}</strong><span style="font-size:0.75rem; color:#fff;">${msg}</span>`;
+            
+            container.appendChild(toast);
+            // Destroys notification box completely out of system view trees after exactly 4.5 seconds
+            setTimeout(() => toast.remove(), 4500);
+        }
+
         function handleExternalOSUpload(input) {
             if(!input.files) return;
             Array.from(input.files).forEach(file => {
                 const reader = new FileReader();
                 let type = file.type.startsWith("video/") ? "video" : "image";
-                reader.onload = (e) => {
-                    saveVirtualFile(file.name, e.target.result, type);
-                };
+                reader.onload = (e) => { saveVirtualFile(file.name, e.target.result, type); };
                 reader.readAsDataURL(file);
             });
         }
@@ -336,33 +451,20 @@
                 if(file.type === "image") card.innerHTML = `<img src="${file.src}">`;
                 else card.innerHTML = `<span>🎥</span>`;
                 card.innerHTML += `<div class="grid-item-label">${file.name}</div>`;
-                
-                // Triggers native modal layout view instead of breaking out to blank pages
                 card.onclick = () => launchOSMediaViewer(file.name, file.src, file.type);
-                
                 files.appendChild(card.cloneNode(true)); if(file.type === "image" || file.type === "video") gallery.appendChild(card);
             });
         }
 
         function launchOSMediaViewer(name, src, type) {
-            const modal = document.getElementById('os-media-viewer-modal');
-            const title = document.getElementById('os-media-viewer-title');
-            const target = document.getElementById('os-media-viewer-content');
-            
+            const modal = document.getElementById('os-media-viewer-modal'); const title = document.getElementById('os-media-viewer-title'); const target = document.getElementById('os-media-viewer-content');
             title.innerText = "Viewing Asset: " + name;
-            if(type === "image") {
-                target.innerHTML = `<img src="${src}" style="max-width:100%; max-height:100%; object-fit:contain; image-rendering:pixelated;">`;
-            } else {
-                target.innerHTML = `<video src="${src}" controls autoplay style="max-width:100%; max-height:100%;"></video>`;
-            }
+            if(type === "image") { target.innerHTML = `<img src="${src}" style="max-width:100%; max-height:100%; object-fit:contain; image-rendering:pixelated;">`; }
+            else { target.innerHTML = `<video src="${src}" controls autoplay style="max-width:100%; max-height:100%;"></video>`; }
             modal.style.display = "flex";
         }
 
-        function closeOSMediaViewer() {
-            document.getElementById('os-media-viewer-modal').style.display = "none";
-            document.getElementById('os-media-viewer-content').innerHTML = "";
-        }
-
+        function closeOSMediaViewer() { document.getElementById('os-media-viewer-modal').style.display = "none"; document.getElementById('os-media-viewer-content').innerHTML = ""; }
         function saveLocalNoteChanges() { localStorage.setItem('melon_os_notepad_data', document.getElementById('notebook-textarea-node').value); alert("Note backed up!"); }
         document.getElementById('notebook-textarea-node').value = localStorage.getItem('melon_os_notepad_data') || "";
         function navigateBrowser() { document.getElementById('custom-browser-iframe').src = "https://vercel.app"; }
@@ -382,7 +484,7 @@
                 e.preventDefault(); e.stopPropagation(); selectedShortcutId = sc.id;
                 ctxMenu.style.top = e.clientY + 'px'; ctxMenu.style.left = e.clientX + 'px'; ctxMenu.style.display = 'block';
                 const targetWin = sc.getAttribute('data-window'); const delBtn = document.getElementById('menu-delete-action');
-                if(["game-window","google-window","camera-window","gallery-window","files-window","notebook-window"].includes(targetWin)) { delBtn.classList.add('disabled'); delBtn.style.opacity = "0.4"; } else { delBtn.classList.remove('disabled'); delBtn.style.opacity = "1"; }
+                if(["game-window","google-window","camera-window","gallery-window","files-window","notebook-window","element-window"].includes(targetWin)) { delBtn.classList.add('disabled'); delBtn.style.opacity = "0.4"; } else { delBtn.classList.remove('disabled'); delBtn.style.opacity = "1"; }
             });
             sc.addEventListener('mousedown', (e) => {
                 if(e.button !== 0) return;
@@ -398,35 +500,25 @@
             });
         }
 
+        function toggleUserOSFlyout(e) {
+            e.stopPropagation();
+            const panel = document.getElementById('user-flyout-panel');
+            panel.style.display = panel.style.display === 'flex' ? 'none' : 'flex';
+        }
+
+        function terminateOSSession() {
+            if(matrixActiveClientInstance) matrixActiveClientInstance.stopClient();
+            window.location.reload(); // Purges execution memory states and locks down shell parameters
+        }
+
         document.getElementById('menu-open-action').onclick = () => { if(selectedShortcutId) openWindow(document.getElementById(selectedShortcutId).getAttribute('data-window')); };
-        document.getElementById('menu-delete-action').onclick = () => { if(selectedShortcutId) { const sc = document.getElementById(selectedShortcutId); const tw = sc.getAttribute('data-window'); if(["game-window","google-window","camera-window","gallery-window","files-window","notebook-window"].includes(tw)) return; document.getElementById(tw).remove(); sc.remove(); ctxMenu.style.display = 'none'; updateTaskbarTray(); } };
-        document.addEventListener('click', () => ctxMenu.style.display = 'none');
+        document.getElementById('menu-delete-action').onclick = () => { if(selectedShortcutId) { const sc = document.getElementById(selectedShortcutId); const tw = sc.getAttribute('data-window'); if(["game-window","google-window","camera-window","gallery-window","files-window","notebook-window","element-window"].includes(tw)) return; document.getElementById(tw).remove(); sc.remove(); ctxMenu.style.display = 'none'; updateTaskbarTray(); } };
+        document.addEventListener('click', () => { ctxMenu.style.display = 'none'; document.getElementById('user-flyout-panel').style.display = 'none'; });
 
-        // FORCE AUDIO PURGE DISCONNECT ON FORMS CLOSE WINDOW
-        function closeWindow(id) { 
-            const win = document.getElementById(id);
-            win.style.display = 'none'; 
-            
-            // Re-routes game iframe context directly to clear memory context threads instantly
-            if(id === 'game-window') {
-                document.getElementById('game-frame').src = "about:blank";
-            }
-            updateTaskbarTray(); 
-        }
-
-        function openWindow(id) { 
-            const win = document.getElementById(id); 
-            win.style.display = 'flex'; 
-            windowZIndex++; win.style.zIndex = windowZIndex; 
-            
-            // Reloads client contents cleanly if re-opened after an engine purge close hook
-            if(id === 'game-window' && document.getElementById('game-frame').src.endsWith("about:blank")) {
-                document.getElementById('game-frame').src = "game.html";
-            }
-            updateTaskbarTray(); 
-        }
-        
+        function closeWindow(id) { const win = document.getElementById(id); win.style.display = 'none'; if(id === 'game-window') { document.getElementById('game-frame').src = "about:blank"; } updateTaskbarTray(); }
+        function openWindow(id) { const win = document.getElementById(id); win.style.display = 'flex'; windowZIndex++; win.style.zIndex = windowZIndex; if(id === 'game-window' && document.getElementById('game-frame').src.endsWith("about:blank")) { document.getElementById('game-frame').src = "game.html"; } updateTaskbarTray(); }
         function minimizeWindow(id) { const win = document.getElementById(id); win.style.display = win.style.display === 'none' ? 'flex' : 'none'; }
+        
         function maximizeWindow(id) {
             const win = document.getElementById(id);
             if(id === 'game-window') { if(win.requestFullscreen) { win.requestFullscreen(); } else if(win.webkitRequestFullscreen) { win.webkitRequestFullscreen(); } return; }
@@ -436,8 +528,8 @@
 
         function updateTaskbarTray() {
             const tray = document.getElementById('active-tabs-tray');
-            tray.innerHTML = '<span class="system-metric" style="font-weight:bold; letter-spacing:1px; cursor:pointer;" onclick="toggleSystemSettings()">🍉 MelonOS</span>';
-            document.querySelectorAll('.window').forEach(win => { if(win.style.display !== 'none') { const label = win.querySelector('.window-title').innerText.split('\n'); const tab = document.createElement('button'); tab.className = 'task-app-btn active-tab'; tab.innerText = label; tab.onclick = () => minimizeWindow(win.id); tray.appendChild(tab); } });
+            tray.innerHTML = ''; // Populates items dynamically while maintaining profile elements bounds
+            document.querySelectorAll('.window').forEach(win => { if(win.style.display !== 'none') { const label = win.querySelector('.window-title').innerText.split('\n')[0]; const tab = document.createElement('button'); tab.className = 'task-app-btn active-tab'; tab.style.marginLeft = "10px"; tab.innerText = label; tab.onclick = () => minimizeWindow(win.id); tray.appendChild(tab); } });
         }
 
         function setupWindowManagerEvents(win) {
@@ -449,8 +541,6 @@
 
         document.querySelectorAll('.window').forEach(setupWindowManagerEvents);
         document.querySelectorAll('.desktop-shortcut').forEach(setupShortcutEvents);
-        updateTaskbarTray();
     </script>
 </body>
 </html>
-
