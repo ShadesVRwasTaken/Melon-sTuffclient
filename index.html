@@ -179,9 +179,9 @@
         <div class="window-content app-padding"><div class="flex-btn-row"><button class="task-app-btn" style="background:var(--accent-color); color:black; font-weight:bold;" onclick="saveLocalNoteChanges()">💾 Save Note</button></div><textarea id="notebook-textarea-node" class="note-textarea" placeholder="Type text here..."></textarea></div>
         <div class="resize-handle"></div>
     </div>
-    <div class="window" id="element-window" style="top: 70px; left: 200px; width: 540px; height: 440px; display: none;">
+    <div class="window" id="element-window" style="top: 70px; left: 200px; width: 680px; height: 480px; display: none;">
         <div class="window-header"><span class="window-title">💬 Friends Network Messenger</span><div class="window-controls"><button class="win-btn win-min" onclick="minimizeWindow('element-window')"></button><button class="win-btn win-max" onclick="maximizeWindow('element-window')"></button><button class="win-btn win-close" onclick="closeWindow('element-window')"></button></div></div>
-        <div class="window-content" style="background: #080f09;"><div class="chat-container"><div class="chat-sidebar"><div style="padding: 10px; font-size: 0.8rem; font-weight: bold; color: var(--accent-color); border-bottom: 1px solid var(--border-color);">ACTIVE ROOMS</div><div id="chat-rooms-list" style="flex: 1; overflow-y: auto;"></div></div><div class="chat-main" style="padding: 25px; display: flex; flex-direction: column; justify-content: center; align-items: center; box-sizing: border-box;"><span style="font-size: 3.5rem; margin-bottom: 10px;">💬</span><h3 style="color: var(--accent-color); margin: 0 0 10px 0;" id="chat-status-heading">Matrix Account Synchronizer</h3><p style="font-size: 0.85rem; color: #a2e88d; max-width: 280px; line-height: 1.5; margin: 0 0 20px 0;">Select a channel room row to load messages natively or open full workspace threads instantly via the endpoint launcher:</p><button class="task-app-btn" style="background: var(--accent-color); color: #000; font-weight: bold; padding: 10px 20px;" onclick="window.open('https://element.io', '_blank')">Launch Full Element App ↗</button></div></div></div>
+        <div class="window-content" style="background: #000; margin:0; padding:0;"><iframe id="custom-element-iframe" src="https://vercel.app" style="width:100%; height:100%; border:none; margin:0; padding:0; filter: hue-rotate(65deg) brightness(0.9);" allow="autoplay; fullscreen; encrypted-media;"></iframe></div>
         <div class="resize-handle"></div>
     </div>
     <div class="taskbar">
@@ -269,25 +269,9 @@
         }
         function initMatrixNotificationListeners() {
             if(!matrixActiveClientInstance) return;
-            matrixActiveClientInstance.startClient({ initialSyncLimit: 15 });
-            const listContainer = document.getElementById('chat-rooms-list');
-            const statusHeading = document.getElementById('chat-status-heading');
-            matrixActiveClientInstance.on("sync", function(state) {
-                if(state === "PREPARED" || state === "SYNCING") {
-                    const rooms = matrixActiveClientInstance.getRooms();
-                    if(rooms.length > 0 && listContainer) {
-                        listContainer.innerHTML = ""; statusHeading.innerText = "Ecosystem Connected";
-                        rooms.forEach(r => {
-                            const div = document.createElement('div'); div.className = "room-item"; div.innerHTML = `<span>💬</span> ${r.name}`;
-                            div.onclick = () => window.open(`https://element.io{r.roomId}`, '_blank');
-                            listContainer.appendChild(div);
-                        });
-                    }
-                }
-            });
             matrixActiveClientInstance.on("Room.timeline", function(event, room, toStartOfTimeline) {
                 if (toStartOfTimeline || event.getType() !== "m.room.message" || event.getSender() === matrixActiveClientInstance.getUserId()) return;
-                spawnOSSystemToast(room.name || "Element Friend", event.getContent().body || "Sent a message file");
+                spawnOSSystemToast(room.name || "Element Notification", event.getContent().body || "Sent a chat asset");
             });
         }
 
@@ -342,7 +326,8 @@
         function installCurrentWebpage() {
             const currentUrl = document.getElementById('browser-url-bar').value.trim(); const space = document.getElementById('desktop-space'); if(currentUrl === "") return;
             let safeId = "app-" + Math.floor(Math.random() * 100000);
-            const shortcut = document.createElement('div'); shortcut.className = 'desktop-shortcut'; shortcut.id = "shortcut-" + safeId; shortcut.setAttribute('data-window', safeId); shortcut.style.top = "20px"; shortcut.style.left = "250px"; shortcut.innerHTML = `<span class="shortcut-icon">🚀</span><span class="shortcut-label">${currentUrl}</span>`;
+            const shortcut = document.createElement('div'); shortcut.className = 'desktop-shortcut'; shortcut.id = "shortcut-" + safeId; shortcut.setAttribute('data-window', safeId); shortcut.style.top = "20px"; shortcut.style.left = "250px";
+            shortcut.innerHTML = `<span class="shortcut-icon">🚀</span><span class="shortcut-label">${currentUrl}</span>`;
             const newWin = document.createElement('div'); newWin.className = 'window'; newWin.id = safeId; newWin.style = "top:110px; left:220px; width:600px; height:400px; display:none;";
             newWin.innerHTML = `<div class="window-header"><span class="window-title">🚀 ${currentUrl}</span><div class="window-controls"><button class="win-btn win-min" onclick="minimizeWindow('${safeId}')"></button><button class="win-btn win-max" onclick="maximizeWindow('${safeId}')"></button><button class="win-btn win-close" onclick="closeWindow('${safeId}')"></button></div></div><div class="window-content"><iframe src="https://vercel.app"></iframe></div><div class="resize-handle"></div>`;
             document.body.appendChild(newWin); space.appendChild(shortcut); setupWindowManagerEvents(newWin); setupShortcutEvents(shortcut);
